@@ -568,7 +568,7 @@ with each other. security audits are per-module.
 
 | repo | path | role |
 |------|------|------|
-| aurum | `~/git/aurum/` | Goldilocks field arithmetic |
+| nebu | `~/git/nebu/` | Goldilocks field arithmetic |
 | hemera | `~/git/hemera/` | hash function (commitments for VSS) |
 | mudra | `~/git/mudra/` | crypto primitives (this repo) |
 | nox | `~/git/nox/` | VM |
