@@ -1,0 +1,10 @@
+[package]
+name = "mudra"
+version = "0.1.0"
+edition = "2024"
+description = "post-quantum cryptographic primitives: KEM, dCTIDH, TFHE, threshold"
+license = "Cyber"
+
+[dependencies]
+aurum = { path = "../aurum" }
+hemera = { path = "../hemera" }
