@@ -3,6 +3,12 @@ alias: dctidh
 tags: computer science, cryptography
 crystal-type: entity
 crystal-domain: computer science
+diffusion: 0.0003479741081572643
+springs: 0.0008938533258542193
+heat: 0.0007356733749596144
+focus: 0.0005892777268268132
+gravity: 6
+density: 3.74
 ---
 # dCTIDH
 

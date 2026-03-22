@@ -3,6 +3,12 @@ alias: lattice KEM, ML-KEM, CRYSTALS-Kyber, lattice key encapsulation
 tags: computer science, cryptography
 crystal-type: entity
 crystal-domain: computer science
+diffusion: 0.00035095367800245495
+springs: 0.0009814767780704405
+heat: 0.0007942771536750832
+focus: 0.0006287753031573682
+gravity: 7
+density: 4.74
 ---
 # crypto/lattice-KEM
 
