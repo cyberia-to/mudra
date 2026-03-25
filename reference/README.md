@@ -15,28 +15,34 @@ canonical specification for seven cryptographic primitives. each module proves a
 | [[stealth]] | confidentiality | CSIDH (isogeny class group) | [[stealth]] |
 | [[veil]] | confidentiality | LWE | [[veil]] |
 | [[quorum]] | distribution | information-theoretic (SSS) + hash (VSS) | [[quorum]] |
-| [[delay]] | delay | sequential squaring (unknown group order) | [[delay]] |
+| [[delay]] | delay | sequential computation (isogeny or class group) | [[delay]] |
 | [[order]] | ordering | collision resistance (hemera) | [[order]] |
 | [[place]] | position | speed-of-light bound + geometric consistency | [[place]] |
 
-## algebra
+## two arithmetics
 
-all modules operate over Goldilocks field (p = 2^64 - 2^32 + 1) where possible. same field as nebu, hemera, nox, zheng, bbg. stealth is the exception — it operates over supersingular elliptic curves, though shared secrets are hashed into Goldilocks via hemera.
+mudra operates over three arithmetics:
+
+- **nebu** (F_p, Goldilocks) — seal, quorum, order, place
+- **jali** (R_q, polynomial ring) — veil
+- **genies** (F_q, isogeny) — stealth, delay
+
+shared secrets from genies-based modules are hashed into Goldilocks via hemera. the foreign field is contained — it enters, hemera normalizes, nebu continues.
 
 ## dependency map
 
 ```
-nebu (field arithmetic)
-  ↓
+nebu (F_p)    jali (R_q)    genies (F_q)
+  ↓              ↓              ↓
 hemera (hash: commitments, key derivation, domain separation)
   ↓
 mudra
-├── seal        uses nebu (NTT for R_q), hemera (key derivation)
-├── stealth     uses nebu (curve arithmetic), hemera (secret hashing)
-├── veil        uses nebu (NTT for R_q), hemera (FHE-friendly hash)
+├── seal        uses nebu (scalar KEM), hemera (key derivation)
+├── stealth     uses genies (group action), hemera (secret hashing)
+├── veil        uses jali (R_q ciphertexts, bootstrapping), hemera (FHE-friendly hash)
 ├── quorum      uses nebu (Lagrange interpolation), hemera (VSS commitments)
 │               uses seal or stealth (encrypted share distribution in DKG)
-├── delay       uses hemera (input hashing), optionally quorum (group parameter DKG)
+├── delay       uses genies (isogeny VDF), hemera (input hashing)
 ├── order       uses hemera (hash chain, merkle clock)
 └── place       uses hemera (RTT commitment), delay (challenge timing)
 ```

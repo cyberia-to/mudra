@@ -566,7 +566,7 @@ with each other. security audits are per-module.
 | module | assumption | algebra | proves |
 |--------|-----------|---------|--------|
 | seal | Module-RLWE (NIST) | Goldilocks polynomial rings | confidentiality |
-| stealth | CSIDH (isogeny) | supersingular elliptic curves | confidentiality |
+| stealth | CSIDH (isogeny) | genies (F_q, commutative group action) | confidentiality |
 | veil | LWE | Goldilocks polynomials | confidentiality |
 | quorum | information-theoretic (SSS) + hash (VSS) | Goldilocks field | distribution |
 | delay | sequential squaring (inherent sequentiality) | Goldilocks field | delay |
@@ -577,7 +577,8 @@ with each other. security audits are per-module.
 
 | repo | path | role |
 |------|------|------|
-| nebu | `~/git/nebu/` | Goldilocks field arithmetic |
+| nebu | `~/git/nebu/` | Goldilocks field arithmetic (F_p) |
+| genies | `~/git/genies/` | isogeny field arithmetic (F_q, commutative group action) |
 | hemera | `~/git/hemera/` | hash function (commitments for VSS) |
 | mudra | `~/git/mudra/` | crypto primitives (this repo) |
 | nox | `~/git/nox/` | VM |

@@ -42,7 +42,13 @@ for Goldilocks field: the VDF operates over a class group or RSA group — the f
 - faster evaluation
 - trusted setup conflicts with cyber's design
 
-recommendation: class group VDF. transparent. no trusted setup. mudra::quorum can generate group parameters via DKG if needed.
+**option C: isogeny-based VDF (via genies)**
+- group: commutative group action on supersingular curves (same F_q as stealth)
+- no trusted setup (group order unknown by construction)
+- shares algebra with stealth — one field for both privacy and time proofs
+- isogeny walk is inherently sequential (cannot parallelize endomorphism computation)
+
+recommendation: option C (genies) or option A (class group). both transparent, no trusted setup. option C reuses genies infrastructure already needed for stealth.
 
 ## properties
 
@@ -76,8 +82,9 @@ T_min is per-neuron configurable:
 
 ## dependencies
 
+- genies: F_q group action (isogeny-based VDF) or class group arithmetic
 - hemera: input hashing (H(prev_signal))
-- nebu: Goldilocks field arithmetic (for proof verification if using field-compatible group)
+- nebu: Goldilocks field arithmetic (proof verification folds into zheng accumulator)
 - mudra::quorum: optional DKG for group parameter generation
 
 ## open questions

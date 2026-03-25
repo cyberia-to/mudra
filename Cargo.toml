@@ -13,3 +13,5 @@ license = "Cyber"
 [dependencies]
 nebu = { path = "../nebu" }
 hemera = { path = "../hemera" }
+genies = { path = "../genies" }
+jali = { path = "../jali" }

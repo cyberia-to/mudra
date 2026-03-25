@@ -64,5 +64,5 @@ the isogeny assumption is less studied than lattice assumptions. SIDH was broken
 
 ## dependencies
 
-- nebu: Goldilocks field arithmetic (curve arithmetic over F_p)
+- genies: F_q field arithmetic, commutative group action on supersingular curves
 - hemera: hash for shared secret derivation (j-invariant → symmetric key)
