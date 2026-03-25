@@ -3,4 +3,4 @@
 // crystal-type: source
 // crystal-domain: comp
 // ---
-//! mudra — post-quantum cryptographic primitives
+//! mudra — cryptographic primitives: confidentiality, distribution, delay, ordering, position

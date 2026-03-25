@@ -540,16 +540,22 @@ all files that have it — it is not decoration.
 
 ## what mudra is
 
-mudra (मुद्रा — seal/gesture) provides post-quantum cryptographic primitives for
-cyber. four modules, four security assumptions, one repo.
+mudra (मुद्रा — seal/gesture) provides cryptographic primitives for
+cyber. seven modules, seven security assumptions, one repo.
+
+every module proves a property: confidentiality (seal, stealth, veil),
+distribution (quorum), delay (delay), ordering (order), position (place).
 
 ## modules
 
 ```
-kem/          lattice KEM (Module-RLWE, interactive key exchange, NIST FIPS 203)
-ctidh/        dCTIDH (isogeny-based non-interactive key exchange, conjectured post-quantum)
-tfhe/         TFHE (fully homomorphic encryption over LWE)
-threshold/    Shamir SSS, verifiable secret sharing, DKG, threshold decryption
+seal/         encrypt for a recipient (lattice KEM, Module-RLWE, NIST FIPS 203)
+stealth/      agree on a secret without contact (dCTIDH, isogeny-based NIKE)
+veil/         compute without decrypting (TFHE, fully homomorphic encryption)
+quorum/       split a secret into k-of-n shares (Shamir SSS, VSS, DKG)
+delay/        prove that time passed (VDF, sequential computation proof)
+order/        establish event sequence (hash chain + merkle clock + step + tiebreak)
+place/        prove where you are (RTT mesh + classical MDS location proof)
 ```
 
 ## security boundaries
@@ -557,12 +563,15 @@ threshold/    Shamir SSS, verifiable secret sharing, DKG, threshold decryption
 each module has its own security assumption. they share no cryptographic code
 with each other. security audits are per-module.
 
-| module | assumption | algebra |
-|--------|-----------|---------|
-| kem | Module-RLWE (NIST) | Goldilocks polynomial rings |
-| ctidh | CSIDH (isogeny) | supersingular elliptic curves |
-| tfhe | LWE | Goldilocks polynomials |
-| threshold | information-theoretic (SSS) + hash (VSS) | Goldilocks field |
+| module | assumption | algebra | proves |
+|--------|-----------|---------|--------|
+| seal | Module-RLWE (NIST) | Goldilocks polynomial rings | confidentiality |
+| stealth | CSIDH (isogeny) | supersingular elliptic curves | confidentiality |
+| veil | LWE | Goldilocks polynomials | confidentiality |
+| quorum | information-theoretic (SSS) + hash (VSS) | Goldilocks field | distribution |
+| delay | sequential squaring (inherent sequentiality) | Goldilocks field | delay |
+| order | collision resistance (hemera) | hash chains + DAGs | ordering |
+| place | speed-of-light bound + geometric consistency | RTT matrix + MDS | position |
 
 ## companion repos
 

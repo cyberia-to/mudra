@@ -7,7 +7,7 @@
 name = "mudra"
 version = "0.1.0"
 edition = "2024"
-description = "post-quantum cryptographic primitives: KEM, dCTIDH, TFHE, threshold"
+description = "cryptographic primitives: seal, stealth, veil, quorum, delay, order, place"
 license = "Cyber"
 
 [dependencies]
