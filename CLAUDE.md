@@ -579,10 +579,11 @@ with each other. security audits are per-module.
 |------|------|------|
 | nebu | `~/git/nebu/` | Goldilocks field arithmetic (F_p) |
 | genies | `~/git/genies/` | isogeny field arithmetic (F_q, commutative group action) |
-| hemera | `~/git/hemera/` | hash function (commitments for VSS) |
+| hemera | `~/git/hemera/` | hash function (commitment binding) |
+| lens | `~/git/lens/` | polynomial commitment (5 lenses for 5 algebras) |
 | mudra | `~/git/mudra/` | crypto primitives (this repo) |
-| nox | `~/git/nox/` | VM |
-| zheng | `~/git/zheng/` | proof system |
+| nox | `~/git/nox/` | VM (execution) |
+| zheng | `~/git/zheng/` | proof system (verification) |
 | bbg | `~/git/bbg/` | authenticated state |
 | cyber | `~/git/cyber/` | knowledge graph (parent subgraph) |
 
