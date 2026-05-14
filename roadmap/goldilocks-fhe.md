@@ -63,7 +63,7 @@ choosing q = Goldilocks constrains TFHE parameters:
 
 ## what this enables
 
-with q = Goldilocks, the Wav language (R_q convolution) and all FHE operations in mudra prove natively through zheng/WHIR. no non-native arithmetic. the proving cost of FHE bootstrapping drops from "catastrophic" to "proportional to computation" — same cost model as any other nox program.
+with q = Goldilocks, the Wav language (R_q convolution) and all FHE operations in mudra prove natively through zheng/Brakedown. no non-native arithmetic. the proving cost of FHE bootstrapping drops from "catastrophic" to "proportional to computation" — same cost model as any other nox program.
 
 the ring-aware jet library in Wav (ntt_batch, key_switch, gadget_decomp, noise_track) operates over native Goldilocks NTT. no field conversion at any point in the pipeline.
 
