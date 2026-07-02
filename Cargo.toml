@@ -7,11 +7,46 @@
 name = "mudra"
 version = "0.1.0"
 edition = "2024"
-description = "cryptographic primitives: seal, stealth, veil, quorum, delay, order, place"
+description = "cryptographic primitives: keys, seeds, claims (phase 1); seal, stealth, veil, quorum, delay, order, place (spec)"
 license = "Cyber"
 
+[features]
+# the nox→zheng proving pipeline (milestone 2e). Off by default: pulls the whole
+# proof system. Enable with `cargo test --features prove`.
+prove = ["dep:nox", "dep:zheng"]
+
 [dependencies]
-nebu = { path = "../nebu/rs" }
+# native neuron identity: neuron = Hemera(pubkey)
 hemera = { package = "cyber-hemera", path = "../hemera/rs" }
-genies = { path = "../genies/rs" }
-jali = { path = "../jali/rs" }
+
+# phase 2 — provable verification: secp256k1 emulated as Goldilocks limbs.
+nebu = { package = "cyb-nebu", path = "../strata/nebu/rs" }
+
+# phase 2e — actual proving pipeline (nox program → zheng proof). Heavy; opt-in.
+nox = { path = "../nox/rs", optional = true }
+zheng = { path = "../zheng/rs", optional = true }
+
+# phase 1 — legacy-key bridge (spacepussy migration): seeds, cosmos addresses, claims.
+# secp256k1 comes from bip32's re-export (bip32::secp256k1), so k256 stays version-locked.
+bip39 = { version = "2", features = ["rand"] }
+bip32 = "0.5"
+sha2 = "0.10"
+ripemd = "0.1"
+bech32 = "0.11"
+base64 = "0.22"
+
+# NOTE: the post-quantum modules (seal/stealth/veil/quorum/delay) will re-add the
+# strata algebra crates when implemented:
+#   nebu   = { path = "../strata/nebu/rs" }
+#   genies = { path = "../strata/genies/rs" }
+#   jali   = { path = "../strata/jali/rs" }
+
+[[bin]]
+name = "mudra"
+path = "src/bin/mudra.rs"
+
+[dev-dependencies]
+hex = "0.4"
+# independent references for the phase-2 gadget tests only
+num-bigint = "0.4"
+k256 = { version = "0.13", features = ["arithmetic"] }
