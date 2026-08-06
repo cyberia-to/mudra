@@ -20,7 +20,7 @@
 //! that emits a zheng proof, so the binding needs no trusted verifier.
 
 use base64::{engine::general_purpose::STANDARD as B64, Engine};
-use bip32::secp256k1::ecdsa::{
+use k256::ecdsa::{
     signature::{Signer, Verifier},
     Signature, SigningKey, VerifyingKey,
 };
@@ -117,14 +117,35 @@ pub fn adr036_doc(signer: &str, data: &[u8]) -> String {
     )
 }
 
+/// Sign arbitrary `data` as an ADR-036 offline doc, `signer` filling the
+/// doc's address field. General-purpose — [`create`] is the one caller inside
+/// this module (passing [`bind_message`] as `data`), but any caller with an
+/// ADR-036-shaped signing need (a different neuron's own event stream, say)
+/// can use this directly rather than reimplementing the doc shape.
+pub fn sign_arbitrary(key: &SigningKey, signer: &str, data: &[u8]) -> [u8; 64] {
+    let doc = adr036_doc(signer, data);
+    let sig: Signature = key.sign(doc.as_bytes());
+    let mut out = [0u8; 64];
+    out.copy_from_slice(&sig.to_bytes());
+    out
+}
+
+/// Verify an ADR-036 signature over `data`, `signer` filling the doc's
+/// address field. The counterpart to [`sign_arbitrary`] — does not check
+/// that `pubkey` derives any particular address; callers that need that
+/// binding (like [`verify`]) check it themselves first.
+pub fn verify_arbitrary(pubkey: &[u8; 33], signer: &str, data: &[u8], signature: &[u8; 64]) -> bool {
+    let Ok(vk) = VerifyingKey::from_sec1_bytes(pubkey) else { return false };
+    let Ok(sig) = Signature::from_slice(signature) else { return false };
+    let doc = adr036_doc(signer, data);
+    vk.verify(doc.as_bytes(), &sig).is_ok()
+}
+
 /// Build a claim: bind `neuron` to the account `key` controls under `hrp`.
 pub fn create(key: &SigningKey, hrp: &str, neuron: [u8; 32]) -> Result<Claim, Error> {
     let pubkey = cosmos::compressed(key.verifying_key());
     let address = cosmos::address(&pubkey, hrp)?;
-    let doc = adr036_doc(&address, &bind_message(&neuron));
-    let sig: Signature = key.sign(doc.as_bytes());
-    let mut signature = [0u8; 64];
-    signature.copy_from_slice(&sig.to_bytes());
+    let signature = sign_arbitrary(key, &address, &bind_message(&neuron));
     Ok(Claim { address, pubkey, neuron, signature })
 }
 
@@ -138,10 +159,7 @@ pub fn verify(claim: &Claim, hrp: &str) -> bool {
         return false;
     }
     // 2. the signature must verify over the exact binding doc
-    let Ok(vk) = VerifyingKey::from_sec1_bytes(&claim.pubkey) else { return false };
-    let Ok(sig) = Signature::from_slice(&claim.signature) else { return false };
-    let doc = adr036_doc(&claim.address, &bind_message(&claim.neuron));
-    vk.verify(doc.as_bytes(), &sig).is_ok()
+    verify_arbitrary(&claim.pubkey, &claim.address, &bind_message(&claim.neuron), &claim.signature)
 }
 
 #[cfg(test)]

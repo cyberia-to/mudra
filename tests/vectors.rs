@@ -7,8 +7,10 @@
 //! independent pure-Python BIP-32 secp256k1 derivation + BIP-173 bech32. If
 //! these break, the seed→key→address pipeline diverged from real Cosmos.
 
+#[cfg(feature = "prove")]
 use mudra::proof::ecdsa;
 use mudra::{claim, cosmos, seed};
+#[cfg(feature = "prove")]
 use sha2::{Digest, Sha256};
 
 /// Canonical all-`abandon` BIP-39 phrase. Public test key — never holds value.
@@ -43,6 +45,7 @@ fn full_bridge_round_trips() {
 }
 
 #[test]
+#[cfg(feature = "prove")]
 fn in_stack_ecdsa_verifies_a_real_claim() {
     // The Phase-2 (Goldilocks-limb) ECDSA verifier must agree with the native
     // Phase-1 claim on a REAL claim. A claim signs ECDSA over sha256(ADR-036 doc),

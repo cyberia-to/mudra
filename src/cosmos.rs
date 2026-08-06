@@ -12,7 +12,7 @@
 use ripemd::Ripemd160;
 use sha2::{Digest, Sha256};
 
-use bip32::secp256k1::ecdsa::VerifyingKey;
+use k256::ecdsa::VerifyingKey;
 
 use crate::Error;
 

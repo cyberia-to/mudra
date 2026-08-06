@@ -16,7 +16,8 @@
 //! one place classical signatures are structurally required. This crate
 //! currently implements that bridge:
 //!
-//! - [`seed`]  — BIP-39 mnemonic → seed → BIP-32/44 secp256k1 key (coin type 118)
+//! - [`seed`]  — BIP-39 mnemonic → seed → BIP-32/44 secp256k1 key (coin type 118),
+//!   behind the `bridge` feature (on by default)
 //! - [`cosmos`] — compressed pubkey → `ripemd160(sha256(pk))` → bech32 address
 //! - [`claim`] — ADR-036 sign/verify of a `legacy address → native neuron` binding
 //!
@@ -24,17 +25,30 @@
 //! secp256k1 + sha256 + ripemd160 verification as a nox program producing a
 //! zheng proof, making the binding trustless. The Phase-1 code is the reference
 //! implementation Phase 2 must match.
+//!
+//! **A second, permanent use of secp256k1.** [`domain`] derives a *fresh*
+//! identity — no legacy account, no BIP-32 — for contexts where secp256k1
+//! is chosen not to migrate anything, but because it's what a browser
+//! already speaks natively (a wallet extension, or a few KB of JS). This
+//! is not phase-1-bridge code that phase 2 retires: browsers stay
+//! secp256k1-native regardless of what the rest of cyber's identity model
+//! becomes.
 
 pub mod claim;
 pub mod cosmos;
+pub mod domain;
+#[cfg(feature = "prove")]
 pub mod proof;
+#[cfg(feature = "bridge")]
 pub mod seed;
 
 pub use claim::Claim;
 
-/// The secp256k1 signing key type used across the bridge. Sourced from bip32's
-/// re-export so its `k256` version is locked to the HD-derivation crate's.
-pub use bip32::secp256k1::ecdsa::SigningKey;
+/// The secp256k1 signing key type used across mudra. Depended on directly
+/// (not through bip32's re-export) so it stays available with `bridge` off;
+/// version-pinned to match bip32 0.5's own `k256` pin, so both resolve to
+/// the same crate when `bridge` is on.
+pub use k256::ecdsa::SigningKey;
 
 /// Errors from the legacy-key bridge.
 #[derive(Debug)]
