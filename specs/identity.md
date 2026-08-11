@@ -83,7 +83,7 @@ one mechanism. no new cryptography per pattern. the lock script is a [[nox]] pro
 
 [[cyber]] inherits the paradigm with its own primitives: [[Hemera]] instead of Tip5, [[nox]] instead of Triton VM. same field. same idea. different hash, different VM, same elimination of signatures.
 
-## stark constraints
+## zheng constraints
 
 ```
 Hemera hash:          ~736 constraints (vs ~25,000 for SHA-256)
@@ -260,4 +260,4 @@ the first two layers require only hashes and proofs. the last four introduce add
 
 the [[cyb/signer]] page describes the complexity of universal signing: pluggable curves, pluggable schemes, derivation paths, address formats per chain. identity in [[cyber]] reduces to: one hash function, one VM, one proof system. a [[neuron]] is a hash. authorization is a proof. anonymity is a proof of set membership. everything else follows.
 
-see [[Hemera]] for the hash primitive, [[cyber/nox]] for the VM, [[cyber/proofs]] for stark verification, [[cyber/security]] for formal guarantees
+see [[Hemera]] for the hash primitive, [[cyber/nox]] for the VM, [[cyber/proofs]] for [[zheng]] verification, [[cyber/security]] for formal guarantees

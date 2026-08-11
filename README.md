@@ -6,7 +6,7 @@ post-quantum cryptographic primitives for [[neurons]]. mudra (मुद्रा
 
 ## why no signatures or VRF
 
-in a proof-native system, [[stark]] proofs replace both. a neuron proves `H(secret) = address` in zero knowledge — this IS a signature, just a more powerful one. every digital signature is a special case of a zero-knowledge proof of knowledge. similarly, a VRF computes `output = H(secret, input)` and proves correctness — the proof system handles this directly.
+in a proof-native system, [[zheng]] proofs replace both. a neuron proves `H(secret) = address` in zero knowledge — this IS a signature, just a more powerful one. every digital signature is a special case of a zero-knowledge proof of knowledge. similarly, a VRF computes `output = H(secret, input)` and proves correctness — the proof system handles this directly.
 
 what proofs provide that signatures cannot: composability (prove arbitrary statements, not just key ownership), chargeability (every proof is metered), and universality (one mechanism for authentication, integrity, randomness, and metering).
 
