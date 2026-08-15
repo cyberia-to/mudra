@@ -40,7 +40,7 @@ hemera = { package = "cyber-hemera", path = "../hemera/rs" }
 
 # phase 2 — provable verification: secp256k1 emulated as Goldilocks limbs.
 # behind `prove` — see the feature doc above.
-nebu = { package = "cyb-nebu", path = "../strata/nebu/rs", optional = true }
+nebu = { package = "strata-nebu", path = "../strata/nebu/rs", optional = true }
 
 # phase 2e — actual proving pipeline (nox program → zheng proof). Heavy; opt-in.
 nox = { path = "../nox/rs", optional = true }
