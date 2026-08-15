@@ -4,11 +4,11 @@
 # crystal-domain: comp
 # ---
 [package]
-name = "mudra"
+name = "cyber-mudra"
 version = "0.1.0"
 edition = "2024"
 description = "cryptographic primitives: keys, seeds, claims (phase 1); seal, stealth, veil, quorum, delay, order, place (spec)"
-license = "Cyber"
+license-file = "LICENSE"
 
 [features]
 # Phase 2 — provable verification: secp256k1 emulated as Goldilocks limbs
@@ -34,17 +34,21 @@ prove = ["dep:nebu", "dep:nox", "dep:zheng"]
 default = ["bridge"]
 bridge = ["dep:bip32", "dep:bip39"]
 
+[lib]
+name = "mudra"
+path = "src/lib.rs"
+
 [dependencies]
 # native neuron identity: neuron = Hemera(pubkey)
-hemera = { package = "cyber-hemera", path = "../hemera/rs" }
+hemera = { package = "cyber-hemera", version = "0.3", path = "../hemera/rs" }
 
 # phase 2 — provable verification: secp256k1 emulated as Goldilocks limbs.
 # behind `prove` — see the feature doc above.
-nebu = { package = "strata-nebu", path = "../strata/nebu/rs", optional = true }
+nebu = { package = "strata-nebu", version = "0.1", path = "../strata/nebu/rs", optional = true }
 
 # phase 2e — actual proving pipeline (nox program → zheng proof). Heavy; opt-in.
-nox = { path = "../nox/rs", optional = true }
-zheng = { path = "../zheng/rs", optional = true }
+nox = { package = "cyber-nox", version = "0.1.2", path = "../nox/rs", optional = true }
+zheng = { version = "0.1.2", path = "../zheng/rs", optional = true }
 
 # secp256k1 — always on: `domain.rs` (fresh identity) and `claim.rs`'s
 # general ADR-036 sign/verify need it with or without the `bridge` feature.
