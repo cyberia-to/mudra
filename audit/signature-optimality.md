@@ -1,392 +1,121 @@
-# Mudra signatures, private authorization and wallet recovery
+# Mudra: authorization, privacy and wallet recovery
 
-Date: **2026-09-12**. Status: research and proposed decision, not an accepted
-protocol change or production qualification. Revisions, source evidence and
-executed checks are linked below. Concurrent Neuron and private-proof work was
-inspected and preserved.
+**2026-09-12 · Strategic comparison.** “Current Mudra” means the intended
+protocol in its specifications. The fifth column is a proposed extension.
 
-## Recommended decision
+**Keep the chosen architecture: Hemera/Zheng for authority, seal for recipient
+encryption, CSIDH/stealth for non-interactive key agreement.** CSIDH supplies a
+shared secret; the private execution proof authorizes an action. This review
+withdraws the earlier unsolicited SLH-DSA and default ML-DSA recommendations.
+Temporary build failures have no weight in this strategic comparison.
 
-**Keep programmable proof authorization as Cyber's native target. Select
-ML-DSA-87 as the proposed default when a conventional, independently verifiable
-post-quantum signature is needed. Treat private payment discovery as a separate
-protocol, with UnifOMR a strong research candidate.**
+## Five-system comparison
 
-This is a role-specific engineering choice, not a proof of universal optimality.
-It preserves the reason for Hemera/Zheng while allowing a node, wallet or worker
-to authenticate ordinary messages without starting a prover. Adopting the
-detached-signature profile would explicitly amend the earlier ambition that
-proofs replace *all* signatures, including off-chain messages.
+Sources: [Quantus](quantus-identity-privacy.md),
+[Neptune Privacy / XNT](signature-optimality/neptune-privacy.md),
+[Neptune Cash / NPT](signature-optimality/neptune-evidence.md),
+[Mudra design and parameter evidence](signature-optimality/mudra-design.md).
+Snapshot: Quantus chain 1.0.1/circuits 4.3.0; XNT 0.2.7; Cash core 0.17.0,
+desktop 4.2.1, which packages core 0.15.0. XNT SDK behavior is identified
+separately from its mobile app.
 
-| Role | Proposed choice | Reason and boundary |
-|---|---|---|
-| Private native operation / ownership | Versioned Hemera lock program + private Zheng execution proof | Can jointly prove authority, state predicates and nullifier rules while hiding the witness. The actual Mudra profile and security qualification are unfinished. |
-| Public control messages, receipts, attestations and key bindings | **Pure ML-DSA-87**, exact FIPS 204 context and canonical action envelope | Stateless, fast on the measured host, standardized category 5, independently cross-verifiable. Public signatures do not conceal a subject or message. |
-| Explicit bandwidth-sensitive detached-signature profile | ML-DSA-65, only if category 3 is the selected requirement | Saves 1,318 signature bytes and 640 public-key bytes. Do not negotiate down from 87 silently. |
-| Infrequent independent recovery/root attestation | Consider SLH-DSA-SHA2-256s | Hash-based alternative independent of the lattice assumption; much larger and slower to sign. Keep its recovery policy independent of a proof verifier whose failure it is meant to survive. |
-| Existing Cosmos/browser integration | Preserve secp256k1 / ADR-036 as a named compatibility profile | Existing IDs and wallets retain their meaning. This profile provides no PQ guarantee. |
-| Private notification discovery | Evaluate UnifOMR at its stronger parameter set behind a replaceable retrieval interface | Reduces client download/decryption cost; does not supply complete, authenticated wallet state. |
+| Decision axis | Quantus | Neptune Privacy (XNT) | Neptune Cash (NPT) | Current Cyber/Mudra design | Proposed Cyber/Mudra next |
+|---|---|---|---|---|---|
+| **Spend authority** | Transparent: ML-DSA-65/87. Wormhole: deposit-secret, inclusion and nullifier proof | Tip5 lock predicate inside Triton STARK | Tip5 lock predicate inside Triton STARK | Hemera ownership/policy predicate inside Zheng proof | Same authority; explicit action, network, policy and replay binding |
+| **Receiving a secret** | Wormhole uses deposits to derived public accounts; no confidential-note KEM in this path | Default Generation: lattice KEM + AES-GCM. Optional CTIDH-512 short addresses + AES-GCM | Default Generation: same lattice KEM + AES-GCM; optional EC-hybrid | seal: lattice KEM; stealth: CSIDH NIKE; BBG uses ephemeral stealth discovery | Qualified KEM/NIKE profiles; separate viewing and spending keys |
+| **Ledger confidentiality** | Deposit→exit link hidden; deposit/exit addresses and amounts public | Ordinary UTXO amounts and lock policies hidden | Ordinary UTXO amounts and lock policies hidden | BBG hides owners/values; nullifiers and aggregates public | Preserve confidential state while hiding retrieval interests |
+| **Observable metadata** | Amounts, timing, endpoints, anchors, nullifiers | Fees, timing, structure, receiver tags; reused tags link receipts | Fees, timing, structure, receiver tags; reused tags link receipts | Public roots/nullifiers/aggregates; announcement leakage needs an explicit budget | Same ledger observables; padded private-query transcript; IP/timing remain separate |
+| **Cold restore** | Mobile index lookup over derived addresses and their history; gap 20 | SDK indexed receiver lookup over height ranges; mobile recovery policy unverified | Desktop downloads stripped history and scans locally; 25-key look-ahead | BBG specifies recipient scanning of global announcements | OMR retrieves candidate notes; Inf verifies complete query execution |
+| **Wallet interface** | Mobile app | iOS/Android apps; public SDK; app/source correspondence unverified | Desktop light wallet, separate core/CLI | Mudra library and node/client architecture | cyb client consumes standard node retrieval capability |
+| **What the query server learns** | Full queried address groups and exact nullifier hashes | SDK sends recognizable hashes of public receiver tags, exact commitments and spent hashes | Ordinary history download hides which notes matched; witness requests expose candidate ranges | Local scanning needs no recipient-specific discovery query; remote disclosure contract unfinished | Cryptographic query privacy, subject to the composed OMR/PIR protocol |
+| **Warm state / witnesses** | Cached history plus repeated address/history reconstruction; spend witnesses on demand | SDK can request new ranges; core revisits monitored witnesses each tip | Desktop processes new blocks/held coins; latest archival core derives witnesses on demand | BBG authenticates live commitments/nullifiers; wallet cursor and witness policy need definition | Verified epoch cursor, authenticated spend state and reorg rollback |
+| **Light-client completeness** | Indexed balance trusts omissions/spent answers | Indexed collection has no complete-result proof | Common-history download alone does not establish canonical complete history | Inf supplies the intended provable-query contract | Root/range-bound detection **and** PIR execution proof |
+| **Cryptographic verification surface** | ML-DSA plus a separate Poseidon2/Plonky2 Wormhole circuit/recursion stack | Tip5/Triton, custom lattice KEM; optional CTIDH integration | Tip5/Triton and custom lattice KEM | Hemera/Zheng, CSIDH and lattice commitment/encryption profiles | Existing stack plus OMR's RLWE/BFV/PIR composition |
+| **Quantum qualification** | ML-DSA categories 3/5; Wormhole's configured 100-bit floor is a separate claim | Triton setting 160; 192-bit seed; CTIDH-512 needs its own attack model | Same seed family; EC-hybrid receipt privacy fails under quantum ECDH recovery | Hemera/proof and CSIDH/lattice parameters each require qualification | Explicit resource model and parameters for every layer; no inherited whole-wallet “PQ bits” |
 
-For long-lived secrets, a concrete candidate root policy is 256 bits of generated
-entropy, separate domain-derived spending/signing/viewing/recovery keys, and
-explicit algorithm and derivation versions. This is a proposed policy, not an
-instruction to reinterpret existing seeds or a proof of a whole-system security
-level. Algorithms, hash commitments and proof transcripts must meet the same
-declared threat model; selecting a category-5 signer alone cannot do that.
+**Recovery always needs historical data as well as keys.** Both Neptunes'
+on-chain notifications support rediscovery; off-chain receipts require retained
+payloads. A derivation gap can miss distant indices. Server-side indexing moves
+global-history work off the client; it does not eliminate that work.
 
-## What we had actually chosen
+The proof settings above are not quantified quantum-security levels. Both
+Neptunes' approximately 192-bit seeds permit generic quantum search around
+2^96 oracle queries given a checkable derived address; this is a theoretical
+query count, not a practical attack or timing measurement.
 
-The user correctly remembers an earlier signature choice. Git history gives a
-more precise answer than today's files alone:
+## Concrete costs
 
-1. A CyberPatch proposal used Dilithium3 / ML-DSA. On March 2, commit
-   `cyber/32961eb0` explicitly removed that independent crypto choice.
-2. Later on March 2, `cyber/df8dfa3c` established **Hemera(secret) + proof of a
-   programmable lock** as native identity authorization.
-3. On March 16, `cyber/8797ff52` added **ML-DSA for P2P and attestations** to
-   Mudra. Eleven minutes later, `cyber/815d4180` explicitly removed signatures
-   and VRF because proofs should subsume both.
-4. The signatureless identity document moved from Cybergraph to Mudra in June.
-   July's secp256k1 migration bridge and August's domain-scoped browser signing
-   were distinct compatibility decisions.
+Objects below have different jobs. A receiving key, signature field and complete
+transaction proof must be budgeted separately.
 
-No surviving finalized Falcon, SLH-DSA, WOTS or Lamport production selection was
-found in the searched source/history. The enduring native choice optimized
-reuse of the proof stack and programmable authority; it was not backed by an
-executed comparison proving that per-message proofs outperform every signature.
-[Exact commits, historical paths and search coverage](signature-optimality/local-decisions.md).
+| Quantity | Quantus | Neptune Privacy | Neptune Cash | Current Mudra | Proposed Mudra |
+|---|---|---|---|---|---|
+| Transparent signature field | **5,262 / 7,220 B**, including public key and enum | Native proof authorization | Native proof authorization | Native proof authorization | Preserve native proof authorization |
+| Receiving material | Public account destination | Generation **2,168 B**; optional short payload **64 B**, subaddress **72 B** | Generation **2,168 B** | CSIDH-512 curve **64 B**; full address encoding separate | Parameter-dependent; authors' dCTIDH-2048 key is **264 B** |
+| Secret-delivery overhead | No encrypted-note capsule in reviewed Wormhole path | Generation KEM **2,560 B**; short-mode ephemeral key **64 B**, before field encoding | Generation KEM **2,560 B** | BBG's per-output stealth scheme needs an ephemeral public announcement; seal size depends on chosen profile | Stealth announcement plus OMR clue if enabled |
 
-The current working Neuron profile names `H(compressed secp256k1 public key)`.
-The native design names `H(secret)`. These are different identities, even if
-both serialize to 32 bytes. A stable subject surviving key rotation needs an
-immutable inception binding plus authorized, versioned policy transitions; it
-cannot be implemented by hashing a new key and calling the result the old ID.
-Separate workers can receive scoped credentials under that policy. Moving work
-between machines or CPU/GPU executors does not require a new subject; network
-scope belongs in the authorization statement and policy binding.
+XNT layouts were checked with pinned dependency serialization. Its short mode
+saves normally **2,480 B per equal-payload announcement** after field encoding,
+including the length/header differences. Generation text addresses are **3,482
+characters**, XNT short addresses **116**. This is a real bandwidth benefit;
+stronger CSIDH parameters change that tradeoff.
 
-## Separate the four security jobs
+Published CTIDH-512 action+validation costs **129.64 million cycles** on a
+3 GHz Xeon E3-1220v5 (~43 ms). dCTIDH-2048 action costs **1,409 million cycles**
+on an i7-6700. These are distinct primitive/profile measurements, not mobile
+send times. Per-output NIKE scanning pays an action per candidate unless a
+separate discovery/filtering mechanism reduces candidates.
+[Sources and operation boundaries](signature-optimality/mudra-design.md#stealth-distinguish-variants-parameters-and-measurements).
 
-```mermaid
-flowchart LR
-    A[Action and scope] --> B[Signature or private authorization proof]
-    C[Recipient and note] --> D[Authenticated encryption]
-    D --> E[Publicly committed notification board]
-    E --> F[Local scanning or private OMR retrieval]
-    F --> G[Recovered candidate notes]
-    G --> H[Canonical state and spent-status verification]
-    H --> I[Durable wallet balance and spendable witnesses]
-    B --> J[Authorized state transition]
-    I --> J
-```
+**No comparable full private-transfer latency winner is established.** Quantus's
+reported ~266 KB is a **371-capacity public aggregate**, not one wallet proof.
+XNT's advertised one-second L2 is not a measured released-L1 transfer.
+The decisive benchmark should report one equal-input/output private transfer,
+proof bytes/time/RAM, and seed restore plus incremental update at fixed history
+and wallet sizes on the same target hardware.
 
-A signature establishes authorization for bytes under a key. Encryption hides
-note contents. Discovery finds a wallet's notes. State verification establishes
-their canonical inclusion, spend status and completeness. None of ML-DSA,
-SLH-DSA or a bare preimage proof implements all four jobs.
+## Decisions to finalize
 
-Likewise, a proof with a permanent public subject ID still links that subject's
-actions. Sender privacy needs a relation that hides the relevant ownership
-binding while revealing only the intended outputs, nullifiers and state claims.
-IP addresses, timing, public amounts and indexer queries remain separate leaks.
-
-## Neptune versus Quantus
-
-Snapshot: Neptune Core **0.17.0**, released September 11, commit `34bc7465`;
-Neptune desktop wallet **4.2.1**, commit `fff01e70`, actually packages core/wallet
-**0.15.0**. Quantus app `e843b06b`, chain release **1.0.1** `f1176cea` and the
-chain's pinned circuits **4.3.0** `b224e6dc` are from the earlier same-day audit.
-Neither a live mainnet restore nor matched end-to-end transfer benchmarks were
-executed. [Neptune release](https://github.com/Neptune-Crypto/neptune-core/releases/tag/v0.17.0),
-[versioned evidence](signature-optimality/neptune-evidence.md),
-[Quantus snapshot and tests](quantus-identity-privacy.md).
-
-| Criterion | Neptune | Quantus | Consequence for Cyber |
-|---|---|---|---|
-| Usability | Released desktop light wallet, 18-word restore, local discovery, 25-key look-ahead. Ordinary receipts recover from on-chain notifications; off-chain receipts can need extra payload backups. No current native mobile release established here. | Mobile app includes Wormhole, seed-derived receive/change branches and gap 20. Indexed queries avoid downloading global history; nonstandard derivation paths/external secrets need separate handling. | Quantus supplies useful mobile product patterns; neither seed alone nor a fixed look-ahead guarantees every conceivable receipt is recoverable. |
-| Cold restore and warm updates | Cold restore downloads stripped history and scans locally. Warm sync processes new blocks, checks held coins and polls the tip at roughly one minute. Explicit rollback/replay handles reorgs. | Cold restore queries derived address history and nullifiers. Warm reload still revisits address discovery and accumulated wallet history. Source contains an indexer-lag cursor omission; recent-tail rescanning does not establish complete rollback. | Evaluate verified recovery and catch-up cost, not only the time until a balance number appears. |
-| Authorization speed | Tiny hash-lock predicate, but private STARK proofs and recursive transaction construction are substantial work. GUI creates a ProofCollection; further proof upgrading is required for block inclusion. | Conventional ML-DSA signs cheaply. Wormhole adds a separate private proving/aggregation path, whose cost is not measured by ML-DSA timing. | Detached message auth and confidential ledger transactions need separate budgets. No defensible current numerical winner for full private transfers. |
-| Cryptographic simplicity and reliability | Simple ownership predicate on a large VM/AIR/FRI/transcript/recursive-verifier stack, plus custom lattice notification KEM. Historical soundness failures and corrective rollbacks/relaunch provide concrete failure evidence. | Standard ML-DSA is a narrower, independently testable primitive. Wormhole still depends on a separate proof stack, chain integration and wallet/indexer behavior. Audits are partial and version-specific. | A hash-based authorization predicate does not make the complete cryptographic implementation small. Compare the actual trusted components. |
-| Ledger privacy | Normal UTXO contents, amounts and lock policies are hidden by commitments/proofs. Fees, timing, structural metadata and notification receiver identifiers remain public. Address reuse and lustration exceptions matter. | Wormhole conceals deposit-to-exit linkage. Deposit/exit addresses and amounts are public; timing and amounts can narrow the anonymity set. | Neptune is the closer model for native confidential state. Quantus's unlinkability is useful but does not equal amount confidentiality. |
-| Query privacy | Common stripped-history requests avoid exposing the ordinary address list. Witness recovery leaks candidate ranges/index sets; special origin recovery queries an exact commitment. GUI still trusts the server for chain selection/completeness. | Current mobile code sends full derived addresses and exact nullifier hashes to Subsquid. CLI's 32-bit nullifier prefixes are usually nearly unique against a public dictionary. | Quantus's fast lookup is partly purchased with indexer visibility; Neptune pays more client download to reduce that disclosure. |
-| Post-quantum scope | Hash/preimage STARK spending; default Generation notifications use custom lattice KEM + AES-256-GCM. Optional EC-hybrid mode has explicitly quantum-vulnerable payment-history privacy. Seed and proof parameters have separate limits. | ML-DSA-65/87 are standardized PQ signature profiles. Wormhole's inspected config has a 100-bit minimum security setting; this is not a category-5 or end-to-end quantum claim. | Specify PQ guarantees per component, including seeds, encryption, commitments and proof configuration. |
-
-These are comparisons of inspected mechanisms, not a ranking by token value or
-marketing. Quantus's September 9 launch gives it much less operational history;
-fewer published incidents would not establish greater reliability.
-
-### Concrete Neptune lessons
-
-The standard lock proof takes the **full transaction-kernel MAST hash** as its
-public input and keeps the preimage private. That is the relevant pattern for
-Mudra: authority must bind the exact action. A preimage claim detached from an
-action is not a reusable authorization protocol. Kernel binding still relies
-on sound proof/transcript verification. [Lock and claim construction](signature-optimality/neptune-evidence.md#authorization-and-proof-pipeline).
-
-Current archival core avoids obligatory eager witness updates: it defaults to zero
-stored membership proofs and recovers them from archival state on demand. The
-light wallet also requests witnesses when spending. Eager per-coin updates
-exist as an option; attributing their full cost to every current wallet would
-overstate the default overhead. [Witness paths](signature-optimality/neptune-evidence.md#mutator-set-witness-costs-avoid-attributing-optional-work-to-the-default-node).
-
-There is a real local Trisha receipt for a custom-lock transaction against an
-isolated Neptune **0.15.1** node: five component proofs followed by a SingleProof;
-the latter's proving plus verification took **575.958 seconds**, peak RSS about
-**21.7 GiB**, using four threads and no LDE cache. It reached the node's mempool.
-That single fixture is not a default transfer benchmark, a mobile measurement,
-a mined confirmation, or a measurement of the new 0.17 Forge path.
-[Local validation receipt](../../trisha/audit/neptune-local-node-validation.md).
-
-Historical security outcomes include the August 2025 mainnet relaunch after an
-inflation bug, the January 2026 Triton soundness disclosure, and another June
-recursive-verifier/soundness incident. The 2024 Triton audit covered an older,
-limited scope; the June linked investigation includes AI-assisted findings and
-does not certify the current complete stack. Current fixes must be evaluated
-on their merits; history does not itself prove a surviving exploit.
-[Relaunch](https://neptune.cash/articles/mainnet-relaunch),
-[January disclosure](https://neptune.cash/articles/critical-vulnerability-disclosure),
-[June disclosure](https://talk.neptune.cash/t/critical-vulnerability-discovered/304).
-
-### Quantum security cannot be summarized by one digest length
-
-Neptune's Tip5 digest is 40 bytes and Triton 8 defaults to a **conjectured
-160-bit** security parameter. Its master wallet secret nevertheless contains
-about **192 bits** of entropy. If an attacker can check a public derived address,
-generic quantum search over that seed space takes roughly **2^96 oracle
-queries**. This is a theoretical search bound, not an implemented attack or a
-wall-clock prediction. Hash expansion cannot increase seed entropy.
-[Source and assumptions](signature-optimality/neptune-evidence.md#hash-seed-and-notification-cryptography).
-
-Quantus's category-5 ML-DSA option likewise does not raise the proof system's
-security or fix query leakage. A 100-bit proof configuration is not an assertion
-of 100 quantum bits. UnifOMR's 110 / >128-bit lattice estimates are a third kind
-of claim. They should not be placed in one column labelled "quantum bits".
-
-For Mudra, shortening Hemera output to 32 bytes cannot be justified by choosing
-a stronger signature. A conventional signature, identifier commitment and
-private proof each depend on their own required hash properties. The current
-Hemera parameter source still marks inverse-16 experimental and full-round
-security unestablished. This report does not close that separate cryptanalysis.
-
-## Conventional signatures: measured cost and assumptions
-
-These are **OpenSSL 3.6.2 measurements on this Apple M4 Max**, not Quantus Rust
-latencies, smartphone measurements or proof-circuit costs. Three trials per
-algorithm, one second per keygen/sign/verify phase; table entries are the median
-of trial-average operation times. Raw logs, scripts and all samples are saved.
-[Benchmark methodology and reproduction](signature-optimality/benchmarks/README.md).
-
-| Algorithm | NIST category | Public key, bytes | Signature, bytes | Sign, ms | Verify, ms |
-|---|---:|---:|---:|---:|---:|
-| ML-DSA-65 | 3 | 1,952 | 3,309 | 0.472 | 0.094 |
-| **ML-DSA-87** | **5** | **2,592** | **4,627** | **0.582** | **0.138** |
-| SLH-DSA-SHA2-128s | 1 | 32 | 7,856 | 140.845 | 0.150 |
-| SLH-DSA-SHA2-128f | 1 | 32 | 17,088 | 7.479 | 0.537 |
-| SLH-DSA-SHA2-256s | 5 | 64 | 29,792 | 312.500 | 0.457 |
-| SLH-DSA-SHA2-256f | 5 | 64 | 49,856 | 25.907 | 0.757 |
-
-Parameter sizes/categories come from [FIPS 204, Tables 1–2](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.204.pdf)
-and [FIPS 205, Table 2](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf#page=53).
-NIST categories compare attack resources against specified reference problems;
-they are not a count of quantum security bits.
-
-**Why propose 87:** for long-lived high-value authorization, its larger parameter
-set costs about 0.11 ms extra signing time on this host and 1,318 extra signature
-bytes. This is a reasonable trade given the stated reliability goal. The data
-do not establish that 65 is unsafe or that the same latency ratio holds on every
-target. At large message volumes, bandwidth/storage may dominate CPU.
-
-**Why retain SLH as an alternative:** it changes the core assumption to standard
-hash-based security and keeps tiny public keys. The measured 256s variant is
-reasonable for occasional root actions, expensive for frequent attestations.
-The 256f variant buys faster signing with a 49,856-byte signature. Neither
-variant hides the signer. Replacing its standardized hashes with Hemera would
-create a different, separately analyzed construction, not FIPS 205 SLH-DSA.
-
-**Why not make Falcon the default now:** Falcon's published 512/1024 encodings
-have signatures of 666/1,280 bytes, excellent when bandwidth dominates. Its
-Gaussian/FFT trapdoor sampling adds secret-dependent implementation concerns
-beyond checking a short public signature. These are engineering tradeoffs, not
-evidence of a current break. NIST's current overview still lists Falcon under
-ongoing standardization; do not label a chosen Falcon encoding finalized
-FN-DSA/FIPS 206. No same-host Falcon measurement was made here.
-[Falcon authors](https://falcon-sign.info/),
-[NIST status, updated August 5, 2026](https://csrc.nist.gov/projects/post-quantum-cryptography).
-
-**Why not default to WOTS/XMSS/LMS:** their hash-only attraction is real, but
-stateful variants must prevent one-time key reuse across crashes, rollback,
-backup restore and parallel signers. That operational requirement conflicts
-with casually cloning a seed among workers. Controlled, disjoint subtree
-allocation can support specialized deployments; it is a new state-management
-contract, not free multi-device signing. [NIST SP 800-208, §§1.2, 7–9](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-208.pdf).
-
-No native timing in this table predicts the cost of verifying these signatures
-inside Zheng. If a confidential lock only needs a preimage and policy proof,
-inserting a full ML-DSA verification circuit may be unnecessary. Conversely,
-existing external signatures may need proof wrapping for interoperability.
-
-### What to take from Quantus
-
-Use its ML-DSA implementation immediately as the **independent cross-check
-backend already isolated in this audit**. The earlier same-day harness passed
-54 ML-DSA-65/87 cases against OpenSSL, including equal deterministic signatures,
-cross-verification, hedged signing and rejection of modified inputs. This is
-actual interoperability evidence, not a NIST module certificate or proof of
-side-channel resistance. [Executable and boundaries](quantus-mldsa-crosscheck/README.md).
-
-Choose the Mudra *protocol* independently of the Rust provider. The inspected
-Quantus crate has useful tests and prior Neodyme review, but that review covers
-an older revision, and the crate's GPL-3.0 declaration differs from the repo
-root's Apache-2.0 text. Production provider selection needs that boundary
-resolved and the post-audit diff reviewed. Do not import Quantus's extrinsic
-context, address derivation or Wormhole protocol merely to obtain ML-DSA.
-[Pinned adoption evidence](quantus-identity-privacy.md#2-which-quantus-signature-components-to-reuse).
+1. **Preserve proof authorization.** Bind ownership to the complete action and
+   stable subject's versioned policy. A standalone signature becomes a separate
+   choice only if we require independently transferable signed messages outside
+   that proof contract. Quantus remains useful as a cross-verification source.
+2. **Choose an exact stealth profile and scan budget.** CSIDH-512's 64-byte key
+   does not establish today's target quantum margin. The high-security study
+   uses **2048/4096-bit primes for level 1 under different attack-resource
+   models**. A seed length or field width is not a security estimate.
+   [Parameter analysis](https://thomwiggers.nl/publications/secsidh/secsidh.pdf).
+3. **Resolve seal's standard-versus-native construction.** The spec combines
+   Goldilocks/degree 64/rank 4 with standard ML-KEM sizes. FIPS 203 uses
+   modulus 3329/degree 256. Choose standard interoperability or qualify a
+   separately named native construction; standard sizes/security do not transfer.
+   [Exact discrepancy](signature-optimality/mudra-design.md#seal-a-consequential-parameter-ambiguity).
+4. **Separate discovery from exclusive spend authority.** A NIKE shared secret
+   is also known to the sender. Specify ephemeral public announcements,
+   authenticated key epochs and independent viewing/spending relations. XNT's
+   short-address mapping provides a concrete integration counterexample:
+   its lock witness is derived from public address bytes. An offline VM check
+   confirms that predicate issue; it does not break CSIDH.
+   [Source and bounded reproduction](signature-optimality/neptune-privacy.md#ctidh-genuine-bandwidth-benefit-separate-parameter-and-integration-questions).
 
 ## UnifOMR: what the new paper changes
 
-Ben Fisch, Zeyu Liu, Eran Tromer and Yunhao Wang's **UnifOMR** is directly
-relevant to our wallet discovery problem. It lets a server help identify a
-recipient's messages without learning which records belong to that recipient.
-It changes who performs the expensive work and how much the client downloads.
-[Paper, version May 9, 2026](https://eprint.iacr.org/archive/2026/910/1778291181.pdf),
-[full paper/source assessment](signature-optimality/unifomr-evidence.md).
-
-The sender attaches an RLWE-encrypted clue to an independently encrypted note.
-The recipient uploads an encrypted detection key. The server homomorphically
-processes every clue and returns compact partial-decryption results. The client
-decrypts/range-checks them locally, then uses **batch PIR** to retrieve matching
-notes without revealing their indices. This needs two communication rounds.
-
-The heavy global scan moves to the server, **per queried recipient**. The client
-still processes a compact **O(N)** stream, roughly 6.5 or 10 bytes per record for
-the detection component at the paper's two parameter sets, before PIR. This
-is substantial practical compression, not asymptotically free history access.
-
-Representative author-reported results: N = 524,288 messages, 50 pertinent
-messages, 612-byte payloads:
-
-| Metric | Param1 | Param2 |
-|---|---:|---:|
-| Advertised computational estimate | 110 bits | >128 bits |
-| Server runtime | 25 s | 41 s |
-| Recipient CPU | 28 ms | 54 ms |
-| Reported digest | 4,163 KB | 5,955 KB |
-| Separate key material | 31 MB | 48 MB |
-| Per-note clue | 2,477 bytes | 2,565 bytes |
-| Per-note false-negative target | 2^-30 | 2^-128 |
-
-These are the authors' measurements, not our benchmark. Client CPU excludes
-waiting for server/network work. Key upload is additional to digest size, and
-public PIR bootstrap data must be accounted for. The smaller cloud instance's
-RAM description is inconsistent; the public repository linked by the paper
-still exposes the older 2022 OMR implementation. A runnable new UnifOMR artifact
-was not found through the checked author/repository routes.
-
-The paper's near-optimality result relates strongly detection-key-unlinkable
-OMR to PIR under its model. It does not prove the concrete optimum across
-hardware, preprocessing, multiple servers or weaker privacy models. Its
-formal definitions use PPT adversaries; lattice ingredients are PQ candidates,
-but the table is not an end-to-end QPT security theorem.
-
-### The remaining gap is material for a reliable wallet
-
-1. **Malicious-server privacy is not completeness.** The base correctness
-   argument assumes honest-but-curious detection. A server can omit a payment
-   without necessarily learning its recipient. Merkle proofs authenticate
-   returned records; they do not prove that no matching record was omitted.
-   Appendix E explicitly leaves single-server integrity open.
-2. **False positives require capacity slack.** Keep true matches T, false
-   positives F and PIR capacity B distinct. Require a bounded failure
-   probability for `T + F > B`. Printed Algorithm 1 truncates excess candidates;
-   the experiment's exact slack accounting could not be resolved without its
-   artifact. This is a documented ambiguity, not a demonstrated paper break.
-3. **Notification retrieval is not spendable state.** Inclusion, canonical
-   roots, nullifier/spent status, membership witnesses, finality, availability
-   and reorg rollback require their own verified protocols and durable state.
-4. **Privacy must survive wallet behavior.** The paper excludes post-retrieval
-   recipient actions from its CPA-like privacy model. Response-dependent
-   retries, direct fallback queries or payment reactions can leak information.
-5. **The sender and archive pay new costs.** Every compatible payment needs a
-   recoverable clue and payload. Param1 adds about 1.21 GiB of clues to the
-   example's 306 MiB of payloads. Existing unclued history is not upgraded by
-   merely deploying a detector.
-
-For Cyber, trial UnifOMR on committed historical epochs with a deterministic
-view-key derivation profile, padded query capacity and explicit overflow
-handling. Persist only a *verified* recovery cursor. Keep baseline scanning as
-a correctness reference, and specify when fallback is privacy-safe. A full
-restore processes historical epochs; warm sync processes newly committed
-epochs. Neither mode automatically maintains BBG state witnesses.
+The fifth column combines private discovery with our existing proof stack.
+[UnifOMR Param2](https://eprint.iacr.org/archive/2026/910/1778291181.pdf#page=36)
+reports **41 s server / 54 ms client**, **5,955 KB digest**, **48 MB keys** and
+**2,565 B clue per message** for one recipient, 524,288 messages, 50 matches and
+612-byte payloads. These are author measurements before Cyber proof overhead.
+Server detection and the compact client digest still scale with global message
+count. See [measurement and error qualifications](signature-optimality/unifomr-evidence.md).
 
 ### Cyber integration follow-up, 2026-09-12
 
-The owner connected the completeness question to Inf's existing provable-query
-design and selected ordinary node or adjacent infrastructure as the deployment
-home. This changes the architectural interpretation of the gap: it is a
-composition task on Cyber's authenticated read path, with a natural execution
-proof mechanism already specified by the stack.
-
-The design record now lives in
-[Cybergraph: verifiable private retrieval](../../cybergraph/docs/private-retrieval.md),
-linked from its query/expose contracts. Inf's
-[complete-input coverage](../../inf/specs/proof.md#complete-input-coverage)
-spells out the generic obligation; the node's
-[C2.1 roadmap](../../cyber/roadmap/c-network.md#c21-verifiable-private-retrieval)
-tracks implementation and acceptance.
-
-The server proves exact encrypted detection over the complete committed board
-and exact PIR response computation from that same board. It can prove these
-ciphertext operations without knowing the recipient's decryption key or matching
-indices. BBG supplies authenticated scope/coverage, Inf supplies complete query
-semantics, Mudra supplies the private operations, and Zheng proves their actual
-execution. Proof statements bind the query/profile, root, range and result.
-Algorithmic detection error, overflow, privacy of the combined transcript and
-availability retain their separate requirements.
-
-Source inspection at this follow-up: Cybergraph `c9836ae` implements
-`Cybergraph::query` as parse/plan/evaluate over its local source; both its
-`src/source.rs` and Inf `b0e4506`'s `rs/source/src/bbg.rs` return `false` from
-`provable()`. Inf's optional expression proving still calls the legacy Zheng
-API with zero program/input/output hashes. These observations establish an
-integration target rather than an already shipped complete private-query
-service. BBG's newer [public query contract](../../bbg/specs/query.md) separately
-provides complete-table authentication with explicit disclosure and size bounds.
-This follow-up inspected source and changed documentation; it did not run or
-claim a new cryptographic benchmark.
-
-## Work that makes this decision implementable
-
-The following is a proposed execution order. This report deliberately stays in
-`audit/`; it does not quietly convert research recommendations into accepted
-specifications or modify the user's concurrent implementation.
-
-| Order | Concrete deliverable | Evidence required before calling it done |
-|---|---|---|
-| 1 | Versioned Mudra authorization and identity lifecycle contract | Exact canonical action bytes, signature/proof profile, subject and key-policy binding, chain/genesis, environment/program scope, revision, nonce, replay and recovery rules. Existing identities retain their meaning. |
-| 2 | ML-DSA-87 detached-signature adapter and independent CI oracle | External FIPS context vectors; malformed/wrong-key/profile/network/action rejection; literal seed→key→ID vectors; rotation/recovery tests; target custody and error behavior. Resolve implementation license/audit delta. |
-| 3 | Real private lock authorization through Zheng | Bind the expected lock program and full action to its witness relation; test wrong secret, substituted action/root/program, replay and leaked-witness paths. Pin Hemera and the actual private proof backend. Measure proof/verify bytes, latency and RAM. |
-| 4 | Complete durable identity and wallet state through BBG | Crash/restart tests at acceptance/receipt boundaries, replay across networks, policy rollback/reorg, recovery without stale authority. A key hash alone is insufficient. |
-| 5 | Reproducible UnifOMR discovery experiment | Runnable pinned artifact; standard scan as ground truth; Param2 and a complete failure budget; full first restore versus warm sync costs, server cost per user, clues/keys/bootstrap storage, adversarial omission and overflow behavior. |
-| 6 | Standard verifiable private retrieval through Cybergraph/Inf | Prove complete detection and PIR computation against the requested canonical domain; compose membership/nullifier queries, data availability, reorg-safe cursors, padded retries and privacy-safe recovery. Implementation gates are in the node's C2.1 roadmap. |
-
-Current execution evidence matters: Mudra's optional `prove` feature still
-fails to compile and its old circuit is an arithmetic demo. Two legacy Zheng
-attack regressions still reproduce acceptance of unrelated/zero witnesses;
-the newer public execution API binds its relation but discloses witness data.
-Concurrent work already includes a distinct private Triton-backed CCS path.
-It must be qualified as the actual Mudra authorization route rather than
-describing every Zheng entry point as equivalent.
-[Readiness tests and concurrent-work boundaries](signature-optimality/local-decisions.md#zheng-readiness-relevant-to-that-decision).
-
-## Evidence inventory
-
-- [Recovered local decisions and executed readiness checks](signature-optimality/local-decisions.md).
-- [Neptune release, wallet, cryptography and incident evidence](signature-optimality/neptune-evidence.md).
-- [UnifOMR full-paper and public-code assessment](signature-optimality/unifomr-evidence.md).
-- [New same-host signature benchmarks, raw logs and reproduction scripts](signature-optimality/benchmarks/README.md).
-- [Earlier Quantus signature, circuit, wallet and recovery assessment](quantus-identity-privacy.md).
-- [Existing 54-case Quantus/OpenSSL cross-verification executable](quantus-mldsa-crosscheck/README.md).
-
-No new production crypto provider, key migration, live transfer or full-system
-security certification is claimed. Unmeasured mobile/proving workloads and the
-missing UnifOMR artifact remain explicit limits on the recommendation.
+The selected home is an ordinary node capability or adjacent worker:
+**BBG commits the full board; Inf defines complete query semantics; Mudra
+supplies private operations; Zheng proves encrypted detection and PIR response
+computation.** This preserves recipient secrecy while authenticating execution
+over the requested root/range. Detection errors, overflow and transcript privacy
+remain explicit protocol requirements. The design trace is
+[Cybergraph private retrieval](../../cybergraph/docs/private-retrieval.md), with
+[Inf's coverage contract](../../inf/specs/proof.md#complete-input-coverage) and
+[node roadmap C2.1](../../cyber/roadmap/c-network.md#c21-verifiable-private-retrieval).

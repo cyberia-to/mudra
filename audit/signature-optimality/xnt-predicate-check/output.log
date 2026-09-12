@@ -1,0 +1,2 @@
+synthetic_public_witness_vm_accept=3 wrong_witness_reject=3
+generation_kem_pk_bytes=2080 generation_address_payload_bytes=2168 generation_address_chars=3482 dctidh_address_payload_bytes=64 dctidh_address_chars=116 dctidh_subaddress_payload_bytes=72 dctidh_subaddress_chars=130 generation_kem_ciphertext_bfes=320

@@ -1,0 +1,59 @@
+{
+  "source": "https://pq-code-package.github.io/mlkem-native/dev/bench/data.js",
+  "lastUpdate": 1789037407317,
+  "hardware": "Mac Mini (M1, 2020)",
+  "commit": {
+    "id": "0924122d0e92b2d682fab5d5e5e2593ec84c8a1f",
+    "timestamp": "2026-09-10T07:59:18Z",
+    "url": "https://github.com/pq-code-package/mlkem-native/commit/0924122d0e92b2d682fab5d5e5e2593ec84c8a1f"
+  },
+  "date": 1789033185535,
+  "tool": "customSmallerIsBetter",
+  "benches": [
+    {
+      "name": "ML-KEM-512 keypair",
+      "value": 12312,
+      "unit": "cycles"
+    },
+    {
+      "name": "ML-KEM-512 encaps",
+      "value": 14775,
+      "unit": "cycles"
+    },
+    {
+      "name": "ML-KEM-512 decaps",
+      "value": 19331,
+      "unit": "cycles"
+    },
+    {
+      "name": "ML-KEM-768 keypair",
+      "value": 21169,
+      "unit": "cycles"
+    },
+    {
+      "name": "ML-KEM-768 encaps",
+      "value": 23498,
+      "unit": "cycles"
+    },
+    {
+      "name": "ML-KEM-768 decaps",
+      "value": 30037,
+      "unit": "cycles"
+    },
+    {
+      "name": "ML-KEM-1024 keypair",
+      "value": 30335,
+      "unit": "cycles"
+    },
+    {
+      "name": "ML-KEM-1024 encaps",
+      "value": 34112,
+      "unit": "cycles"
+    },
+    {
+      "name": "ML-KEM-1024 decaps",
+      "value": 43667,
+      "unit": "cycles"
+    }
+  ]
+}

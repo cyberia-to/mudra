@@ -4,6 +4,10 @@ Date: 2026-09-12. Status: research and executable interoperability evidence.
 This report does not accept a new identity profile or change runtime behavior.
 The user's neuron harness and Mudra changes in another thread were preserved.
 
+This is the earlier implementation snapshot. The revised
+[strategic comparison](signature-optimality.md) governs the design recommendation;
+temporary implementation failures below are not algorithm-selection criteria.
+
 ## Decision
 
 Quantus has reusable implementation work: its ML-DSA library is a credible
@@ -135,6 +139,12 @@ Quantus consensus, addresses, wallet or Wormhole circuits.
 |---|---:|---:|---:|
 | ML-DSA-65 | 3 | 1,952 bytes | 3,309 bytes |
 | ML-DSA-87 | 5 | 2,592 bytes | 4,627 bytes |
+
+The chain's `SignatureWithPublic` carries signature **and** public key; its
+enclosing SCALE enum adds one byte. Thus the signature field is **5,262 B for
+65 / 7,220 B for 87**, before other extrinsic fields. Wormhole uses a separate
+proof-authorized spending path. [Wire variants](https://github.com/Quantus-Network/chain/blob/662ef6d1dea8f3572776b8db9da1f57283744fd2/primitives/dilithium-crypto/src/types.rs#L51-L74),
+[combined encoding](https://github.com/Quantus-Network/chain/blob/662ef6d1dea8f3572776b8db9da1f57283744fd2/primitives/dilithium-crypto/src/scheme_macro.rs#L64-L90).
 
 Sizes were checked in the executable against the actual APIs. The chain
 supports both profiles and uses `QUANTUS_EXTRINSIC` as its FIPS signing context.
