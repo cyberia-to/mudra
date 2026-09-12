@@ -5,64 +5,98 @@ crystal-domain: crypto
 ---
 # stealth — agree on a secret without contact
 
-two neurons derive a shared secret from public graph data — no message round-trip needed. isogeny-based non-interactive key exchange (dCTIDH/CSIDH). conjectured post-quantum security. enables stealth addresses and anonymous channels.
+stealth provides isogeny-based non-interactive key agreement. two parties with
+authentic public keys derive a shared secret without a message round-trip.
+CSIDH supplies the commutative class-group action; a concrete profile selects
+its parameters, implementation family, encoding and key derivation.
 
 ## interface
 
-```
-keygen() → (SecretKey, PublicKey)
-agree(sk: &SecretKey, pk: &PublicKey) → SharedSecret
+```text
+keygen(profile, randomness) → (SecretKey, PublicKey)
+agree(profile, sk, peer_pk, context) → Result<SharedSecret, AgreementError>
 ```
 
-two calls, no interaction. Alice computes `agree(sk_alice, pk_bob)`. Bob computes `agree(sk_bob, pk_alice)`. both arrive at the same shared secret via commutativity of the class group action.
+keys carry a profile/version. agreement validates the peer key and rejects
+incompatible profiles and invalid encodings before using the secret.
+context binds the protocol purpose, network, participants and key epochs.
+its encoding and the shared-secret KDF are fixed by the selected profile.
 
 ## mechanism
 
-a class group acts on supersingular elliptic curves over F_p. each secret key is a vector of integer exponents. each public key is the resulting curve.
-
-```
-Setup:
-  E₀: supersingular elliptic curve over F_p
-  Class group action: [a] · E₀ = E_a    (secret isogeny walk)
-
-keygen():
-  a ← secret_distribution(Z^ℓ)     secret: vector of small integers
-  E_a = [a] · E₀                   public: resulting curve
-  return (sk=a, pk=E_a)
-
-agree(sk=a, pk=E_b):
-  shared = [a] · E_b = [a] · [b] · E₀
-  return H(shared)                  hash the j-invariant
-
-Commutativity:
-  [a]·[b]·E₀ = [b]·[a]·E₀         both parties get the same curve
+```text
+base curve: E0
+Alice: secret a, public A = [a] E0
+Bob:   secret b, public B = [b] E0
+shared action result: [a] B = [b] A
+key: profile_KDF(canonical_shared_result, context)
 ```
 
-## why dCTIDH over CSIDH
+the profile specifies whether the shared result is a curve coefficient,
+j-invariant or another canonical representative. callers cannot interchange
+these encodings. agreement outputs purpose-separated encryption/MAC keys;
+the raw action result is not used directly as a key.
 
-original CSIDH leaks timing information through variable-time isogeny computation. dCTIDH uses dummy isogenies and constant-time arithmetic to resist side-channel attacks. "d" = dummy-free (division-based approach). "CT" = constant-time.
+## static agreement and private delivery
 
-## parameters
+static-static agreement uses the two existing public keys. it repeats the
+pairwise secret until keys or context change. it supplies neither forward
+secrecy nor traffic anonymity by itself.
 
-| variant | classical security | public key | status |
-|---------|-------------------|-----------|--------|
-| dCTIDH-512 | ~64 bit | 64 B | research |
-| dCTIDH-1024 | ~128 bit | 128 B | research |
-| dCTIDH-2048 | ~256 bit | 256 B | research |
+per-payment delivery uses sender ephemeral secret r:
 
-public keys are remarkably compact: 64-256 bytes vs 800-1568 bytes for lattice KEM.
+```text
+recipient publishes B = [b] E0
+sender publishes R = [r] E0
+sender derives [r] B; recipient derives [b] R
+```
 
-## security
+the sender publishes R, keeps r secret, and authenticates the encrypted note
+and its association with the output commitment. packet formats and admission
+rules follow [private recovery](private-recovery.md).
 
-the isogeny assumption is less studied than lattice assumptions. SIDH was broken in 2022, though CSIDH survived those attacks (different algebraic structure — commutative group action vs non-commutative). active research area, not yet standardized.
+the sender also knows this shared secret. exclusive spending authority uses
+an independent secret/policy under [identity](identity.md). a shared-secret
+hash alone cannot establish the recipient's exclusive right to spend.
 
-## usage in cyber
+## profile qualification
 
-- stealth addresses: sender creates a cyberlink detectable only by intended recipient, no prior communication
-- non-interactive key exchange: two neurons derive shared secret from public graph data
-- anonymous channels: shared secret reveals nothing about which neurons communicate
+a profile fixes all of:
+
+- base curve, prime, action primes, secret distribution and effective keyspace;
+- exact public/secret/shared-value encoding and validation algorithm;
+- constant-time algorithm, randomness requirements and physical-attack scope;
+- KDF, context encoding, key derivation/rotation and error handling;
+- classical and quantum attack-resource model and parameter estimates;
+- measured keygen, validation, action and per-candidate scan costs.
+
+prime width is not a security-bit count. a 64-byte CSIDH-512 curve encoding
+does not by itself establish a production quantum-security level. larger
+profiles may require additional encoded data beyond the curve coefficient.
+wire sizes come from the exact profile.
+
+dCTIDH means deterministic CTIDH. that construction uses dummy operations;
+dummy-free variants require their own algorithm and security analysis.
+constant-time execution addresses timing leakage within its stated model.
+
+parameter selection remains explicit. the module does not designate a
+production profile from a family name or an unsupported size/security table.
+[Research and parameter evidence](../audit/signature-optimality/mudra-design.md#stealth-distinguish-variants-parameters-and-measurements).
+
+## privacy and lifecycle
+
+- authenticate recipient public-key bindings and their epochs before delivery.
+- derive independent discovery, payload, channel and spending material.
+- retain the view-key epochs required by the advertised recovery interval.
+  erasing a key changes historical recovery and late-payment behavior.
+- shared-secret tags require agreement first unless another qualified protocol
+  filters candidates. they do not automatically remove per-output scan cost.
+- receiver tags, public directory lookups, packet sizes, timing and retries
+  obey the enclosing protocol's explicit leakage policy.
 
 ## dependencies
 
-- genies: F_q field arithmetic, commutative group action on supersingular curves
-- hemera: hash for shared secret derivation (j-invariant → symmetric key)
+- genies: field arithmetic, validated commutative group action;
+- hemera: profile-selected key derivation and domain separation;
+- identity and private recovery: authenticated key bindings, ownership and
+  end-to-end delivery requirements.

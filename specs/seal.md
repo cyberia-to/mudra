@@ -5,78 +5,79 @@ crystal-domain: crypto
 ---
 # seal — encrypt for a recipient
 
-seal a message so only the intended recipient can open it. lattice-based key encapsulation (Module-RLWE). interactive — the receiver publishes a public key, the sender seals a shared secret under it. NIST standardized as ML-KEM (FIPS 203, 2024). post-quantum secure.
+seal provides lattice key encapsulation for recipient encryption. a sender
+encapsulates a fresh shared secret under an authenticated recipient public key.
+the recipient can be offline. authenticated payload encryption is a separate
+operation using keys derived from that secret.
 
 ## interface
 
-```
-keygen() → (SecretKey, PublicKey)
-encap(pk: &PublicKey) → (Ciphertext, SharedSecret)
-decap(sk: &SecretKey, ct: &Ciphertext) → Result<SharedSecret, DecapError>
-```
-
-## algebra
-
-Module-RLWE over Goldilocks field. same field as hemera, nox, zheng — native arithmetic, no conversion.
-
-```
-Ring R = Z_p[x] / (x^64 + 1)       cyclotomic polynomial, degree 64
-Module dimension: 4×4 over R
-Field: p = 2^64 - 2^32 + 1         Goldilocks
+```text
+keygen(profile, randomness) → (SecretKey, PublicKey)
+encap(profile, pk, randomness) → (Ciphertext, SharedSecret)
+decap(profile, sk, ct) → profile-defined result
 ```
 
-## protocol
+the profile defines key/ciphertext encoding, validation, decapsulation behavior
+and failure handling. standard ML-KEM includes implicit rejection for invalid
+ciphertexts; an API must preserve its specified behavior. application errors
+must not introduce a ciphertext-validity or decryption oracle.
 
-```
-keygen():
-  s ← small_distribution(R^4)       secret key: short vector
-  A ← uniform(R^{4×4})              public matrix
-  e ← error_distribution(R^4)       noise
-  b = A·s + e                       public key: noisy product
-  return (sk=s, pk=(A, b))
+keys and ciphertext envelopes identify their profile/version. a peer-key
+binding identifies the recipient, network, purpose and key epoch. payload
+encryption authenticates the envelope and output/operation association.
 
-encap(pk=(A, b)):
-  r ← small_distribution(R^4)       ephemeral randomness
-  e' ← error_distribution(R^4)
-  e'' ← error_distribution(R)
-  c1 = A^T · r + e'
-  c2 = b^T · r + e'' + encode(shared_secret)
-  return ((c1, c2), shared_secret)
+## standard ML-KEM profiles
 
-decap(sk=s, ct=(c1, c2)):
-  shared_secret = decode(c2 - s^T · c1)
-  return shared_secret
-```
+FIPS 203 ML-KEM uses modulus 3329, polynomial degree 256 and module ranks
+2, 3 or 4. standard profiles preserve the prescribed algorithms, distributions,
+compression, hashes and chosen-ciphertext transform.
 
-security assumption: given A and b = A·s + e, recovering s is computationally hard. the error term masks the secret.
+| profile | NIST category | public key | ciphertext | shared secret |
+|---|---|---|---|---|
+| ML-KEM-512 | 1 | 800 B | 768 B | 32 B |
+| ML-KEM-768 | 3 | 1184 B | 1088 B | 32 B |
+| ML-KEM-1024 | 5 | 1568 B | 1568 B | 32 B |
 
-## parameter sets
+[FIPS 203](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.203.pdf)
+defines these profiles. no system-wide quantum-security bit count follows from
+the category of one primitive. the enclosing Cyber protocol explicitly selects
+its profile; this module assigns no new default.
 
-| set | classical security | public key | ciphertext | shared secret |
-|-----|-------------------|-----------|-----------|--------------|
-| ML-KEM-512 | 128 bit | 800 B | 768 B | 32 B |
-| ML-KEM-768 | 192 bit | 1184 B | 1088 B | 32 B |
-| ML-KEM-1024 | 256 bit | 1568 B | 1568 B | 32 B |
+## native-field construction
 
-## comparison with stealth
+the earlier Goldilocks sketch, modulus 2^64 - 2^32 + 1, degree 64 and rank 4,
+is a separate candidate construction. those choices do not instantiate FIPS 203.
+
+a native profile must separately specify distributions, noise/error bounds,
+message encoding, seed expansion, compression, validation, chosen-ciphertext
+security, decapsulation behavior and parameter estimates. a noisy public-key
+encryption equation alone is insufficient to define a secure KEM.
+
+the native profile remains unselected until those requirements are met.
+standard ML-KEM sizes and security categories cannot be assigned to it.
+[Recorded discrepancy](../audit/signature-optimality/mudra-design.md#seal-a-consequential-parameter-ambiguity).
+
+## relationship to stealth
 
 | property | seal | stealth |
-|----------|------|---------|
-| interaction | interactive (receiver key first) | non-interactive (NIKE) |
-| quantum security | post-quantum (Module-LWE, proven reduction) | conjectured PQ (isogeny) |
-| public key size | 800-1568 B | 64-256 B |
-| performance | fast | ~5x slower |
-| standardization | NIST FIPS 203 (2024) | research |
+|---|---|---|
+| recipient can be offline | yes, with a published authentic key | yes, with a published authentic key |
+| obtaining a pairwise secret | sender encapsulates; recipient decapsulates | each applies its secret to the peer key |
+| additional delivery material | KEM ciphertext | per-payment stealth publishes an ephemeral public key |
+| static pairwise agreement | requires an encapsulation | two existing keys suffice |
+| security/size/cost | selected KEM profile | selected class-group-action profile |
 
-seal handles interactive key exchange. stealth handles non-interactive scenarios (stealth addresses, anonymous channels).
+public-key publication is a prerequisite for both. comparative performance
+requires the same hardware and separately identified operations/profiles.
 
-## usage in cyber
+## usage and dependencies
 
-- private neuron-to-neuron data: receiver publishes lattice public key as a particle, sender encrypts cyberlink metadata
-- encrypted spell parameters
-- private particle delivery
+seal supplies private particle delivery, encrypted operation parameters and
+share delivery for quorum. shared-secret possession is distinct from
+[proof-based authority](identity.md).
 
-## dependencies
-
-- nebu: Goldilocks field arithmetic, NTT for polynomial multiplication in R
-- hemera: hash for key derivation (shared secret → symmetric key)
+arithmetic and hashing follow the selected profile. standard ML-KEM uses its
+standard ring and hashes. a native candidate may use nebu/jali and hemera after
+separate qualification; field reuse does not establish security or wire
+compatibility.

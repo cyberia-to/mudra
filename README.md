@@ -6,11 +6,24 @@ post-quantum cryptographic primitives for [[neurons]]. mudra (मुद्रा
 
 ## why no signatures or VRF
 
-in a proof-native system, [[zheng]] proofs replace both. a neuron proves `H(secret) = address` in zero knowledge — this IS a signature, just a more powerful one. every digital signature is a special case of a zero-knowledge proof of knowledge. similarly, a VRF computes `output = H(secret, input)` and proves correctness — the proof system handles this directly.
+in the native design, [[zheng]] proves authority for an exact action. a neuron
+proves its ownership/policy relation in zero knowledge, with the action,
+network, program and current policy bound into the statement. hashes and the
+proof construction have distinct security requirements. the full contract is
+[identity](specs/identity.md).
 
-what proofs provide that signatures cannot: composability (prove arbitrary statements, not just key ownership), chargeability (every proof is metered), and universality (one mechanism for authentication, integrity, randomness, and metering).
+verifiable randomness likewise requires a specified relation, uniqueness and
+pseudorandomness argument. proving a hash computation alone does not establish
+every VRF property.
 
-the [[call]] mechanism in [[nox]] (pattern 16) makes this concrete: a neuron proves knowledge of its secret key without revealing it, both on-chain and off-chain. every message is proved and charged for — proof of delivery replaces signed delivery.
+proofs let an application combine programmable authority and state-transition
+rules in one verified statement. the execution protocol separately defines
+metering, fees and any verifiable-randomness relation.
+
+the [[call]] mechanism in [[nox]] binds a neuron's private authority to the
+message and requested action, both on-chain and off-chain. delivery receipts
+require an explicit acknowledgement relation; authorization or correct
+execution alone cannot establish delivery.
 
 ## the separation
 
@@ -20,3 +33,10 @@ mudra handles: confidentiality, key agreement, private computation, key distribu
 these are orthogonal concerns. proofs verify and charge; mudra hides and shares.
 
 ## modules
+
+the [seven module contracts](specs/README.md) separate authority, encryption,
+agreement and private computation. [private recovery](specs/private-recovery.md)
+composes those primitives with BBG/Inf/Zheng so a wallet can recover without
+disclosing its selected records to the service. the
+[client-light recovery proposal](specs/props/private-recovery-index.md) develops
+compact discovery and continuously maintained encrypted wallet state.

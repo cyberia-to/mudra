@@ -5,7 +5,16 @@ crystal-domain: crypto
 ---
 # veil — compute without decrypting
 
-perform computation on encrypted data without ever seeing the plaintext. fully homomorphic encryption (TFHE) with ciphertext modulus q = Goldilocks prime (p = 2^64 - 2^32 + 1) — same field as the entire stack. native proving through zheng, zero non-native arithmetic penalty.
+perform computation on encrypted data without seeing the plaintext. each FHE
+profile fixes its scheme, encoding, arithmetic, parameters and evaluation keys.
+the native-field candidate targets TFHE-style computation with Goldilocks
+ciphertext arithmetic; its security and correctness require separate
+qualification.
+
+BFV/BGV, TFHE and private-retrieval backends have distinct ciphertext/key
+formats and noise models. sharing lattice assumptions does not make them
+interchangeable. [private recovery](private-recovery.md) selects a complete
+retrieval profile and proves the actual encrypted operations it uses.
 
 ## interface
 
@@ -28,65 +37,65 @@ programmable_bootstrap(ct: &Ciphertext, lut: &[u64], bsk: &BootstrapKey) → Cip
 ```
 Ring R_q = F_p[x] / (x^n + 1)
   q = p = 2^64 - 2^32 + 1       Goldilocks prime
-  n ≥ 1024                       polynomial degree (128-bit LWE security at this modulus)
-  two-adicity: 32                supports n up to 2^32
+  n = profile-selected power of two
+  negacyclic NTT requires 2n | (p - 1), hence n ≤ 2^31
 ```
 
 polynomial multiplication via native nebu NTT:
 
 ```
 polynomial multiply in R_q:
-  NTT(a)          → n F_p multiplications (native nebu)
-  pointwise(â,b̂) → n F_p multiplications
-  INTT(ĉ)        → n F_p multiplications
+  NTT(a), NTT(b)  → O(n log n) field operations
+  pointwise(â,b̂) → O(n) field operations
+  INTT(ĉ)        → O(n log n) field operations
 
-total: 3n native Goldilocks multiplications
-proof: 3n degree-2 F_p constraints (no non-native arithmetic)
+exact operations, preprocessing reuse and proof costs depend on the backend
 ```
 
 ## why q = Goldilocks
 
-| property | q = 2^32 | q = Goldilocks |
-|----------|---------|---------------|
-| R_q polynomial multiply | non-native in F_p proofs | native nebu NTT |
-| proof overhead per multiply | ~10-20 extra F_p constraints (carries) | 0 extra constraints |
-| NTT domain | 2-adic roots mod 2^32 | 2-adic roots mod p (two-adicity 32) |
-| modular reduction | bit mask (free on CPU) | sparse reduction (~4 cycles) |
-| proving bootstrapping | catastrophic overhead | native |
+the candidate reuses the proof system's scalar field for suitable ring
+arithmetic and NTTs. packing, rotations, key switching, rounding and bootstrap
+correctness still require their own operations and proof relations. the
+selected backend determines whether that field choice improves total cost.
+
+standard or independently qualified FHE profiles retain their own parameters;
+they are not rewritten into Goldilocks solely to reuse arithmetic.
 
 ## hemera compatibility
 
-hemera's x^-1 S-box reduces multiplicative depth 5.4x:
+the profile specifies the exact Hemera permutation, zero convention and
+encrypted evaluation algorithm. a low-degree proof constraint for an inverse
+does not supply a low-depth homomorphic inverse operation. encrypted evaluation
+may require exponentiation, a lookup or bootstrapping, each with its own cost.
 
-```
-x^7 S-box (64 rounds): 192 multiplicative depth
-x^-1 S-box (16 rounds): 40 multiplicative depth
-
-FHE noise ∝ multiplicative depth
-hemera under FHE: 5.4× less noise → fewer bootstraps
-```
-
-computing hemera homomorphically becomes practical. hash and FHE share the same field — zero conversion overhead.
+sharing a field can reduce conversion overhead. multiplicative depth, noise,
+bootstraps and proving work must be established for the full selected circuit.
+this specification assigns no unmeasured Hemera/FHE speedup.
 
 ## parameter constraints
 
-- security: n ≥ 1024 for 128-bit LWE security with modulus p ≈ 2^64 (lattice estimator)
-- noise: discrete Gaussian σ chosen for correctness at target depth. hemera x^-1 relaxes σ
-- key switching: decomposition base B divides p - 1 = 2^32 × (2^32 - 1). highly composite — many valid bases
-- bootstrapping: test polynomial evaluates at n-th roots of unity mod p. these roots exist (n | 2^32, 2^32 | p-1)
+- security: fix dimension, secret/error distributions, modulus and evaluation-key assumptions; evaluate the complete classical/quantum attack model
+- noise: specify decoding and failure bounds over the complete evaluation and lifetime scope
+- key switching: specify decomposition, rounding, error growth and any circular/key-dependent-message assumption
+- bootstrapping: specify the actual scheme's lookup encoding, keys and correctness relation; NTT roots alone do not define a bootstrap
 
 ## programmable bootstrapping
 
-evaluates an arbitrary lookup table during noise reduction. the test polynomial maps n-th roots of unity to LUT entries. combined with native Goldilocks NTT, programmable bootstrapping enables general computation under encryption at native proving cost.
+programmable bootstrapping evaluates a profile-defined function during noise
+refresh. the scheme must define its plaintext domain, lookup representation,
+precision and failure probability. native NTT arithmetic is an implementation
+building block; it does not by itself establish bootstrap correctness or cost.
 
 ## usage in cyber
 
 - private cyberlink computation: evaluate tri-kernel updates on encrypted cyberlinks
 - private neuron inference: run nox programs on encrypted inputs, produce encrypted outputs
-- FHE-friendly hashing: compute hemera on encrypted data (practical with x^-1 depth reduction)
+- encrypted detection and compaction for a separately qualified private-recovery profile
+- hashing encrypted data with a qualified Hemera evaluation circuit
 
 ## dependencies
 
 - nebu: Goldilocks field arithmetic, NTT (polynomial multiplication in R_q)
-- hemera: FHE-friendly hash (x^-1 S-box, 40 multiplicative depth)
-- zheng: native proving of FHE operations (zero non-native overhead)
+- hemera: profile-selected hash and domain separation
+- zheng: proving the actual FHE program, including profile-specific arithmetic and conversions

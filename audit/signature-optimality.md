@@ -69,8 +69,8 @@ The two Cyber columns assess designs, not delivered guarantees.
 The grades have specific reasons:
 
 - **Recovery:** Quantus and XNT index a wallet's history on the server.
-  NPT and current BBG scan global history on the client. OMR reduces downloaded
-  payloads and client decryption, but retains a compact history-sized digest
+  NPT and current BBG scan global history on the client. The assessed UnifOMR
+  path reduces downloaded payloads and client decryption, but retains a history-sized detection response
   and substantial server work; hence Cyber+ gets **2**, not a free **3**.
 - **Query trust:** NPT's common-history scan hides discovery interests, but
   witness requests leak information. Current Cyber has the Inf proof contract;
@@ -116,10 +116,18 @@ of the contract. [Cybergraph design](../../cybergraph/docs/private-retrieval.md)
 
 ## What still needs a decision
 
-**Choose the exact CSIDH profile and scan budget; resolve standard ML-KEM versus
-a separately specified Goldilocks seal; finalize independent view/spend keys
-and action/policy binding.** These qualify the chosen architecture.
+**Choose the exact CSIDH profile and scan budget; select a standard ML-KEM profile
+or qualify the separate Goldilocks seal; instantiate the specified independent
+view/spend roles and action/policy binding.** These qualify the chosen architecture.
 [Parameter evidence](signature-optimality/mudra-design.md).
+
+The [canonical recovery contract](../specs/private-recovery.md) now fixes the
+privacy, delivery, coverage and lifecycle requirements. The next
+[recovery-index proposal](../specs/props/private-recovery-index.md) targets
+compact discovery and prepared encrypted wallet state. Its goal is the highest
+client-work grade, including private lookup and spend preparation; the table's
+2 still describes the earlier UnifOMR-shaped path. The full composition remains
+to be measured.
 
 ## Concrete costs
 
