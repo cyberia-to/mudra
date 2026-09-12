@@ -1,0 +1,19 @@
+You have chosen to measure elapsed time instead of user CPU time.
+Doing ML-DSA-65 keygen ops for 1s: 9709 ML-DSA-65 signature keygen ops in 1.01s
+Doing ML-DSA-65 signs ops for 1s: 2228 ML-DSA-65 signature sign ops in 1.00s
+Doing ML-DSA-65 verify ops for 1s: 12877 ML-DSA-65 signature verify ops in 1.01s
+Doing ML-DSA-87 keygen ops for 1s: 8560 ML-DSA-87 signature keygen ops in 1.00s
+Doing ML-DSA-87 signs ops for 1s: 1996 ML-DSA-87 signature sign ops in 1.01s
+Doing ML-DSA-87 verify ops for 1s: 8169 ML-DSA-87 signature verify ops in 1.00s
+Doing SLH-DSA-SHA2-128s keygen ops for 1s: 52 SLH-DSA-SHA2-128s signature keygen ops in 1.01s
+Doing SLH-DSA-SHA2-128s signs ops for 1s: 8 SLH-DSA-SHA2-128s signature sign ops in 1.12s
+Doing SLH-DSA-SHA2-128s verify ops for 1s: 6684 SLH-DSA-SHA2-128s signature verify ops in 1.00s
+Doing SLH-DSA-SHA2-128f keygen ops for 1s: 3497 SLH-DSA-SHA2-128f signature keygen ops in 1.00s
+Doing SLH-DSA-SHA2-128f signs ops for 1s: 147 SLH-DSA-SHA2-128f signature sign ops in 1.01s
+Doing SLH-DSA-SHA2-128f verify ops for 1s: 2456 SLH-DSA-SHA2-128f signature verify ops in 1.00s
+Doing SLH-DSA-SHA2-256s keygen ops for 1s: 57 SLH-DSA-SHA2-256s signature keygen ops in 1.02s
+Doing SLH-DSA-SHA2-256s signs ops for 1s: 4 SLH-DSA-SHA2-256s signature sign ops in 1.04s
+Doing SLH-DSA-SHA2-256s verify ops for 1s: 2893 SLH-DSA-SHA2-256s signature verify ops in 1.00s
+Doing SLH-DSA-SHA2-256f keygen ops for 1s: 911 SLH-DSA-SHA2-256f signature keygen ops in 1.00s
+Doing SLH-DSA-SHA2-256f signs ops for 1s: 42 SLH-DSA-SHA2-256f signature sign ops in 1.01s
+Doing SLH-DSA-SHA2-256f verify ops for 1s: 1510 SLH-DSA-SHA2-256f signature verify ops in 1.01s

@@ -1,0 +1,12 @@
+version: 3.6.2
+built on: Tue Apr  7 12:17:57 2026 UTC
+options: bn(64,64)
+compiler: clang -fPIC -arch arm64 -O3 -Wall -DL_ENDIAN -DOPENSSL_PIC -D_REENTRANT -DOPENSSL_BUILDING_OPENSSL -DNDEBUG
+CPUINFO: OPENSSL_armcap=0x987d
+                               keygen     signs    verify keygens/s    sign/s  verify/s
+                  ML-DSA-65 0.000101s 0.000519s 0.000102s    9934.0    1925.7    9796.0
+                  ML-DSA-87 0.000141s 0.000631s 0.000143s    7069.0    1584.2    6975.0
+          SLH-DSA-SHA2-128s 0.022174s 0.151429s 0.000151s      45.1       6.6    6624.8
+          SLH-DSA-SHA2-128f 0.000316s 0.007891s 0.000543s    3161.4     126.7    1841.0
+          SLH-DSA-SHA2-256s 0.022391s 0.322500s 0.000457s      44.7       3.1    2189.0
+          SLH-DSA-SHA2-256f 0.001618s 0.030294s 0.000775s     618.0      33.0    1290.1
