@@ -39,4 +39,4 @@ agreement and private computation. [private recovery](specs/private-recovery.md)
 composes those primitives with BBG/Inf/Zheng so a wallet can recover without
 disclosing its selected records to the service. the
 [client-light recovery proposal](specs/props/private-recovery-index.md) develops
-compact discovery and continuously maintained encrypted wallet state.
+neuron-prepared recovery updates/checkpoints and private authenticated indexing.

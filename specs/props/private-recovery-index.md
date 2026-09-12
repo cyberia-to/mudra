@@ -14,10 +14,49 @@ rather than downloading global chain history. retain private values, recipient
 selection and independent spending authority under the
 [private-recovery contract](../private-recovery.md).
 
-the proposed direction is **compact private discovery plus continuously
-maintained encrypted wallet state, with proofs of its complete construction**.
+the priority is **neuron-prepared recovery updates and encrypted checkpoints,
+served through a private, authenticated index**. prepare data and proofs where
+the transaction witness is already available. compact OMR and server-side FHE
+state maintenance remain research comparisons.
 this is a composition proposal. its implementation, full security argument and
 end-to-end performance remain to be established.
+
+## priority: prepare recovery at the neuron
+
+the sending neuron prepares the encrypted delivery record and proves its
+consistency with the payment. it knows the payment delta and its own witnesses;
+it does not know the recipient's complete balance or private spend state.
+
+the owning neuron can compute wallet state locally and publish an encrypted,
+recoverable checkpoint with a proof of the required state relation. this uses
+ordinary private computation at the owner; outsourced FHE is unnecessary for
+data that the authorized neuron can already read. a remotely hosted owner
+runtime holding these keys remains inside the owner's trust boundary.
+
+the network validates and durably admits the prepared updates. a balance index
+is a derived view of the canonical UTXO/spent state. making balances themselves
+the authoritative ledger would be a separate account-model decision.
+
+the concrete construction still must resolve:
+
+- hidden routing to the recipient's index without a public persistent account
+  handle linking payments;
+- atomic, exactly-once application of admitted deltas under concurrent senders,
+  spends and reorgs; independently prepared balance snapshots cannot overwrite
+  one another;
+- completeness of incoming and spent-state updates through the checkpoint's
+  declared root, plus privately discoverable, durable updates after that root;
+- seed-derived checkpoint discovery, freshness and retained spend data.
+
+an owner checkpoint covers processed history. if the owning neuron is offline,
+later receipts remain durable pending updates; the snapshot cannot certify a
+current balance until that tail is processed. an always-running owner runtime
+can process it while the user interface is closed.
+
+addition alone can use a qualified additively homomorphic profile. hidden
+routing, eligibility checks and state proofs have separate requirements; an
+encrypted balance sum does not implement them. prioritize this write/read
+protocol before selecting a homomorphic scanning backend.
 
 ## separate the four user results
 
@@ -41,7 +80,10 @@ and verify it plus a bounded tail. without preparation, a service first builds
 the state from retained history or a qualified pre-existing private index.
 that server delay is part of the unprepared restore benchmark.
 
-## proposed pipeline
+## server-computation comparison
+
+the following candidate outsources discovery and encrypted state maintenance.
+it supplies a cost/privacy comparison for the neuron-prepared path above.
 
 ### 1. accepted payments carry recoverable delivery data
 
@@ -65,7 +107,7 @@ homomorphically compress matching indices or payloads to a padded capacity B.
 the client decrypts/decodes this compact result. exact encoding and failure
 bounds belong to the candidate protocol.
 
-**first candidate: SophOMR's published compact extraction.** it establishes
+**comparison baseline: SophOMR's published compact extraction.** it establishes
 that client decoding can be independent of global N at fixed parameters and
 capacity, at a substantial server cost. compare its payload compression with
 indices-only extraction followed by private payload retrieval. an encrypted
@@ -140,10 +182,11 @@ an encrypted root without available leaves cannot support a payment.
 
 | candidate | gain | price / missing piece | decision |
 |---|---|---|---|
-| compact OMR + proved private state | client avoids global notification stream | per-recipient FHE/proving work, key storage, state-update design | primary experiment |
+| neuron-prepared updates/checkpoints + private index | use available transaction/owner witnesses; shift work to payment and state update | hidden routing, complete pending tail, atomic admission and private recovery | priority design |
+| compact OMR + proved private state | client avoids global notification stream | per-recipient FHE/proving work, key storage, state-update design | comparison baseline |
 | streaming OMR / encrypted inbox | precompute while client sleeps | per-recipient update work; some published inboxes evict old messages | compare after durable baseline |
-| oblivious append index + private reads | move discovery to payment admission | private atomic append/counters, unknown senders, write abuse, access-pattern privacy | longer-term alternative |
-| private balance summary + lazy spend data | avoid downloading all U notes just to open | complete encrypted state and private coin-selection service | compose with primary experiment |
+| oblivious append index + private reads | move discovery to payment admission | private atomic append/counters, unknown senders, write abuse, access-pattern privacy | core design question |
+| private balance summary + lazy spend data | avoid downloading all U notes just to open | complete encrypted state and private coin-selection service | compose with private index |
 | direct sender-to-recipient channel | cheap delivery for known peers | offline first contact, availability and seed recovery still need an archive | optional accelerator |
 
 TEE-only, plaintext-view-key and noncolluding-server constructions have different
@@ -185,13 +228,16 @@ full candidate evidence and caveats are in the
 
 ## experiment and acceptance sequence
 
-1. define a canonical admitted-note fixture and independent complete scan.
-   test adversarial clue/payload mismatch, false detections and capacity limits.
-2. reproduce compact extraction; separately measure sender cost, detection-key
-   upload, server per-recipient CPU/RAM and client query/decode work.
-3. implement an encrypted, nonconsuming recovery-state machine with proved
-   updates and private lookup. exercise concurrent senders, lost responses,
-   provider replacement, stale snapshots, omitted epochs and reorgs.
+1. specify neuron-produced updates/checkpoints, hidden index addressing and
+   network admission against a canonical note fixture and complete scan.
+   identify who knows each witness and who proves each relation.
+2. prototype that write/read path and its nonconsuming recovery-state machine.
+   exercise concurrent senders, offline receipt, lost responses, provider
+   replacement, stale snapshots, omitted epochs and reorgs. establish tail
+   completeness before calling a recovered balance current.
+3. measure sender/owner preparation, admission, index storage and private reads.
+   reproduce compact extraction if needed as a comparison; account separately
+   for its key upload and server per-recipient CPU/RAM.
 4. compare prepared summary restore, live-note export, on-demand spend preparation
    and unprepared historical restore. include all proof construction and
    verification; do not report decode time as spend-ready latency.

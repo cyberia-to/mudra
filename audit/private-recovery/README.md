@@ -7,10 +7,14 @@ is [private recovery index](../../specs/props/private-recovery-index.md).
 
 ## The useful change
 
-UnifOMR is one point in the client/server tradeoff. Compact OMR constructions
-already remove its global-length client detection stream. The promising Cyber
-composition adds a continuously maintained, proved encrypted wallet state:
-summary first, privately selected spend data on demand, full history separately.
+The design priority is neuron-prepared payment updates and owner checkpoints,
+with private authenticated indexing. Transaction/owner witnesses are already
+available at the corresponding neuron. An owner checkpoint still needs a
+complete pending tail to yield a current balance after offline receipt.
+
+Compact OMR demonstrates that global-length client detection streams can be
+avoided, at a substantial per-recipient server cost. It remains a comparison
+baseline. Summary, spend preparation and full export are separate user results.
 
 | route | client advantage | cost or prerequisite |
 |---|---|---|
@@ -32,7 +36,7 @@ global message per recipient. At 1,000 global messages/s it implies about
 2.1 core-equivalents per recipient, or 20,943 for 10,000 recipients, before
 Cyber proving and stricter parameters. This is planning arithmetic, not a
 throughput measurement. Shared preprocessing does not eliminate every private
-predicate. Private routing/index maintenance is the longer-term scaling track.
+predicate. Private routing/index maintenance is now the priority design track.
 
 ## Evidence
 

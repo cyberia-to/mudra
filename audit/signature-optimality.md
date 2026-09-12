@@ -129,8 +129,9 @@ view/spend roles and action/policy binding.** These qualify the chosen architect
 
 The [canonical recovery contract](../specs/private-recovery.md) now fixes the
 privacy, delivery, coverage and lifecycle requirements. The next
-[recovery-index proposal](../specs/props/private-recovery-index.md) targets
-compact discovery and prepared encrypted wallet state. Its goal is the highest
+[recovery-index proposal](../specs/props/private-recovery-index.md) prioritizes
+neuron-prepared updates/checkpoints and private indexing, with compact OMR as a
+comparison baseline. Its goal is the highest
 client-work grade, including private lookup and spend preparation; the table's
 2 still describes the earlier UnifOMR-shaped path. The full composition remains
 to be measured.
