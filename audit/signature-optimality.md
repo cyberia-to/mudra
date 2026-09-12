@@ -318,6 +318,42 @@ a correctness reference, and specify when fallback is privacy-safe. A full
 restore processes historical epochs; warm sync processes newly committed
 epochs. Neither mode automatically maintains BBG state witnesses.
 
+### Cyber integration follow-up, 2026-09-12
+
+The owner connected the completeness question to Inf's existing provable-query
+design and selected ordinary node or adjacent infrastructure as the deployment
+home. This changes the architectural interpretation of the gap: it is a
+composition task on Cyber's authenticated read path, with a natural execution
+proof mechanism already specified by the stack.
+
+The design record now lives in
+[Cybergraph: verifiable private retrieval](../../cybergraph/docs/private-retrieval.md),
+linked from its query/expose contracts. Inf's
+[complete-input coverage](../../inf/specs/proof.md#complete-input-coverage)
+spells out the generic obligation; the node's
+[C2.1 roadmap](../../cyber/roadmap/c-network.md#c21-verifiable-private-retrieval)
+tracks implementation and acceptance.
+
+The server proves exact encrypted detection over the complete committed board
+and exact PIR response computation from that same board. It can prove these
+ciphertext operations without knowing the recipient's decryption key or matching
+indices. BBG supplies authenticated scope/coverage, Inf supplies complete query
+semantics, Mudra supplies the private operations, and Zheng proves their actual
+execution. Proof statements bind the query/profile, root, range and result.
+Algorithmic detection error, overflow, privacy of the combined transcript and
+availability retain their separate requirements.
+
+Source inspection at this follow-up: Cybergraph `c9836ae` implements
+`Cybergraph::query` as parse/plan/evaluate over its local source; both its
+`src/source.rs` and Inf `b0e4506`'s `rs/source/src/bbg.rs` return `false` from
+`provable()`. Inf's optional expression proving still calls the legacy Zheng
+API with zero program/input/output hashes. These observations establish an
+integration target rather than an already shipped complete private-query
+service. BBG's newer [public query contract](../../bbg/specs/query.md) separately
+provides complete-table authentication with explicit disclosure and size bounds.
+This follow-up inspected source and changed documentation; it did not run or
+claim a new cryptographic benchmark.
+
 ## Work that makes this decision implementable
 
 The following is a proposed execution order. This report deliberately stays in
@@ -331,7 +367,7 @@ specifications or modify the user's concurrent implementation.
 | 3 | Real private lock authorization through Zheng | Bind the expected lock program and full action to its witness relation; test wrong secret, substituted action/root/program, replay and leaked-witness paths. Pin Hemera and the actual private proof backend. Measure proof/verify bytes, latency and RAM. |
 | 4 | Complete durable identity and wallet state through BBG | Crash/restart tests at acceptance/receipt boundaries, replay across networks, policy rollback/reorg, recovery without stale authority. A key hash alone is insufficient. |
 | 5 | Reproducible UnifOMR discovery experiment | Runnable pinned artifact; standard scan as ground truth; Param2 and a complete failure budget; full first restore versus warm sync costs, server cost per user, clues/keys/bootstrap storage, adversarial omission and overflow behavior. |
-| 6 | Private retrieval integrated with authenticated state | Canonical epoch/root binding, verified completeness or explicit trust model, membership/nullifier queries, data availability, reorg-safe cursor, padded retries and privacy-safe recovery. |
+| 6 | Standard verifiable private retrieval through Cybergraph/Inf | Prove complete detection and PIR computation against the requested canonical domain; compose membership/nullifier queries, data availability, reorg-safe cursors, padded retries and privacy-safe recovery. Implementation gates are in the node's C2.1 roadmap. |
 
 Current execution evidence matters: Mudra's optional `prove` feature still
 fails to compile and its old circuit is an arithmetic demo. Two legacy Zheng
