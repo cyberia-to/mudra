@@ -24,6 +24,8 @@ existing programmable execution and authenticated graph.
 3. **Keep confidential state in BBG.** Commitments hide owners and values;
    public nullifiers prevent reuse of spent notes. Authenticated state gives
    the node a root against which to prove balances and transitions.
+   Exact public graph-aggregate changes still need disclosure control: an
+   isolated contribution can be recovered by subtraction.
 4. **Recover through private, verifiable queries.** Today the BBG design asks
    recipients to scan announcements. The proposed extension lets a node find
    a wallet's incoming notes privately, then prove that it processed the full
@@ -58,7 +60,7 @@ The two Cyber columns assess designs, not delivered guarantees.
 
 | Criterion | Quantus | XNT | NPT | Cyber¹ | Cyber+² |
 |---|:---:|:---:|:---:|:---:|:---:|
-| Hidden amounts | 🔴 1 | 🟢 3 | 🟢 3 | 🟢 3 | 🟢 3 |
+| Hidden amounts | 🔴 1 | 🟢 3 | 🟢 3 | 🟡 2 | 🟢 3 |
 | Recipient-selection privacy | 🔴 1 | 🔴 1 | 🟡 2 | 🟡 2 | 🟢 3 |
 | Low client recovery work | 🟢 3 | 🟢 3 | 🔴 1 | 🔴 1 | 🟡 2 |
 | Verified history coverage | 🔴 1 | 🔴 1 | 🔴 1 | 🟡 2 | 🟢 3 |
@@ -68,6 +70,10 @@ The two Cyber columns assess designs, not delivered guarantees.
 
 The grades have specific reasons:
 
+- **Amounts:** current Cyber commits private values, but BBG's exact public
+  aggregate deltas can disclose isolated contributions. Its grade is therefore
+  **2** until that release policy is resolved. The target **3** requires closing
+  this channel; private recovery alone cannot do it.
 - **Recovery:** Quantus and XNT index a wallet's history on the server.
   NPT and current BBG scan global history on the client. The assessed UnifOMR
   path reduces downloaded payloads and client decryption, but retains a history-sized detection response
