@@ -62,6 +62,10 @@ private directory lookup is part of delivery when a compact address resolves
 to a larger recipient key record. the record's authenticity and the lookup's
 recipient-selection privacy are separate requirements.
 
+profiles account for every published encryption of a sensitive field. redundant
+encryptions do not automatically strengthen confidentiality: each decryption
+path must meet the field's required protection level.
+
 ## authenticated scope and computation
 
 the client pins the network, accepted checkpoint, state/board root, complete

@@ -114,6 +114,13 @@ specified, restricted nullifier capability that grants no spending authority.
 record/key size, cross-scheme consistency proofs and safe ciphertext refresh
 are explicit design costs. homomorphic CSIDH decryption is not assumed away.
 
+publishing the same field under CSIDH-derived encryption and FHE creates two
+decryption paths: breaking either can expose that field. this is not a hybrid
+that remains confidential whenever either primitive survives. qualify the FHE
+path for every duplicated field under the required quantum/active-adversary
+model. a discovery-only clue has a narrower disclosure scope than a recovery
+record containing amounts and ownership information.
+
 the state proof starts from verified initialization with complete history
 coverage. a checkpoint without that base case cannot certify a balance.
 
