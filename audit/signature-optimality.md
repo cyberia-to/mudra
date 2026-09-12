@@ -1,121 +1,129 @@
-# Mudra: authorization, privacy and wallet recovery
+# Mudra: the Cyber choice
 
-**2026-09-12 · Strategic comparison.** “Current Mudra” means the intended
-protocol in its specifications. The fifth column is a proposed extension.
+**2026-09-12 · Architecture recommendation.** The current design and proposed
+extension are distinguished below; concrete cryptographic profiles still need
+qualification.
 
-**Keep the chosen architecture: Hemera/Zheng for authority, seal for recipient
-encryption, CSIDH/stealth for non-interactive key agreement.** CSIDH supplies a
-shared secret; the private execution proof authorizes an action. This review
-withdraws the earlier unsolicited SLH-DSA and default ML-DSA recommendations.
-Temporary build failures have no weight in this strategic comparison.
+**Cyber keeps proof-based authority, confidential state and CSIDH stealth.
+The next step is private, verifiable wallet recovery through the node.**
+This combines Neptune's useful idea of proving private ownership with Cyber's
+existing programmable execution and authenticated graph.
 
-## Five-system comparison
+## How the chosen scheme works
 
-Sources: [Quantus](quantus-identity-privacy.md),
-[Neptune Privacy / XNT](signature-optimality/neptune-privacy.md),
-[Neptune Cash / NPT](signature-optimality/neptune-evidence.md),
-[Mudra design and parameter evidence](signature-optimality/mudra-design.md).
-Snapshot: Quantus chain 1.0.1/circuits 4.3.0; XNT 0.2.7; Cash core 0.17.0,
-desktop 4.2.1, which packages core 0.15.0. XNT SDK behavior is identified
-separately from its mobile app.
+1. **Authorize with Hemera + Zheng.** Hemera commits to the owner's secret;
+   a Zheng proof shows that the owner satisfies the spending/policy rules for
+   this exact action. The verifier checks the proof without learning the secret.
+   The same proof can cover authorization and the state transition.
+2. **Receive privately with Mudra.** CSIDH/stealth lets sender and recipient
+   derive a shared secret for an encrypted payment, even while the recipient is
+   offline. Per-payment stealth uses a public ephemeral announcement. The spend
+   secret stays independent: the sender also knows the shared secret.
+   **seal** supplies a separate lattice KEM for recipient encryption where that
+   interface is needed.
+3. **Keep confidential state in BBG.** Commitments hide owners and values;
+   public nullifiers prevent reuse of spent notes. Authenticated state gives
+   the node a root against which to prove balances and transitions.
+4. **Recover through private, verifiable queries.** Today the BBG design asks
+   recipients to scan announcements. The proposed extension lets a node find
+   a wallet's incoming notes privately, then prove that it processed the full
+   requested history. The client verifies the result and current spend state.
 
-| Decision axis | Quantus | Neptune Privacy (XNT) | Neptune Cash (NPT) | Current Cyber/Mudra design | Proposed Cyber/Mudra next |
-|---|---|---|---|---|---|
-| **Spend authority** | Transparent: ML-DSA-65/87. Wormhole: deposit-secret, inclusion and nullifier proof | Tip5 lock predicate inside Triton STARK | Tip5 lock predicate inside Triton STARK | Hemera ownership/policy predicate inside Zheng proof | Same authority; explicit action, network, policy and replay binding |
-| **Receiving a secret** | Wormhole uses deposits to derived public accounts; no confidential-note KEM in this path | Default Generation: lattice KEM + AES-GCM. Optional CTIDH-512 short addresses + AES-GCM | Default Generation: same lattice KEM + AES-GCM; optional EC-hybrid | seal: lattice KEM; stealth: CSIDH NIKE; BBG uses ephemeral stealth discovery | Qualified KEM/NIKE profiles; separate viewing and spending keys |
-| **Ledger confidentiality** | Deposit→exit link hidden; deposit/exit addresses and amounts public | Ordinary UTXO amounts and lock policies hidden | Ordinary UTXO amounts and lock policies hidden | BBG hides owners/values; nullifiers and aggregates public | Preserve confidential state while hiding retrieval interests |
-| **Observable metadata** | Amounts, timing, endpoints, anchors, nullifiers | Fees, timing, structure, receiver tags; reused tags link receipts | Fees, timing, structure, receiver tags; reused tags link receipts | Public roots/nullifiers/aggregates; announcement leakage needs an explicit budget | Same ledger observables; padded private-query transcript; IP/timing remain separate |
-| **Cold restore** | Mobile index lookup over derived addresses and their history; gap 20 | SDK indexed receiver lookup over height ranges; mobile recovery policy unverified | Desktop downloads stripped history and scans locally; 25-key look-ahead | BBG specifies recipient scanning of global announcements | OMR retrieves candidate notes; Inf verifies complete query execution |
-| **Wallet interface** | Mobile app | iOS/Android apps; public SDK; app/source correspondence unverified | Desktop light wallet, separate core/CLI | Mudra library and node/client architecture | cyb client consumes standard node retrieval capability |
-| **What the query server learns** | Full queried address groups and exact nullifier hashes | SDK sends recognizable hashes of public receiver tags, exact commitments and spent hashes | Ordinary history download hides which notes matched; witness requests expose candidate ranges | Local scanning needs no recipient-specific discovery query; remote disclosure contract unfinished | Cryptographic query privacy, subject to the composed OMR/PIR protocol |
-| **Warm state / witnesses** | Cached history plus repeated address/history reconstruction; spend witnesses on demand | SDK can request new ranges; core revisits monitored witnesses each tip | Desktop processes new blocks/held coins; latest archival core derives witnesses on demand | BBG authenticates live commitments/nullifiers; wallet cursor and witness policy need definition | Verified epoch cursor, authenticated spend state and reorg rollback |
-| **Light-client completeness** | Indexed balance trusts omissions/spent answers | Indexed collection has no complete-result proof | Common-history download alone does not establish canonical complete history | Inf supplies the intended provable-query contract | Root/range-bound detection **and** PIR execution proof |
-| **Cryptographic verification surface** | ML-DSA plus a separate Poseidon2/Plonky2 Wormhole circuit/recursion stack | Tip5/Triton, custom lattice KEM; optional CTIDH integration | Tip5/Triton and custom lattice KEM | Hemera/Zheng, CSIDH and lattice commitment/encryption profiles | Existing stack plus OMR's RLWE/BFV/PIR composition |
-| **Quantum qualification** | ML-DSA categories 3/5; Wormhole's configured 100-bit floor is a separate claim | Triton setting 160; 192-bit seed; CTIDH-512 needs its own attack model | Same seed family; EC-hybrid receipt privacy fails under quantum ECDH recovery | Hemera/proof and CSIDH/lattice parameters each require qualification | Explicit resource model and parameters for every layer; no inherited whole-wallet “PQ bits” |
+**Why this fits Cyber:** programmable authorization, private balances and
+provable queries share the existing execution/state stack. This architecture
+choice does not require adopting a new detached signature algorithm.
 
-**Recovery always needs historical data as well as keys.** Both Neptunes'
-on-chain notifications support rediscovery; off-chain receipts require retained
-payloads. A derivation gap can miss distant indices. Server-side indexing moves
-global-history work off the client; it does not eliminate that work.
+## Why the other designs are not the whole answer
 
-The proof settings above are not quantified quantum-security levels. Both
-Neptunes' approximately 192-bit seeds permit generic quantum search around
-2^96 oracle queries given a checkable derived address; this is a theoretical
-query count, not a practical attack or timing measurement.
+- **Quantus:** attractive mobile recovery and proof aggregation, but public
+  amounts and endpoint-visible wallet queries fall short of Cyber's privacy
+  goal. Keep its interoperability and product lessons.
+- **Neptune Cash:** the closest model for private proof-based spending.
+  Its ordinary wallet still downloads global stripped history; Cyber already
+  has BBG/Inf for the state and query layer.
+- **Neptune Privacy:** compact CTIDH receiving addresses are directly relevant.
+  Its indexed SDK recovery still exposes recipient interests, and the
+  CSIDH-512 parameter choice needs a defensible quantum attack model.
 
-## Concrete costs
+## Visual assessment
 
-Objects below have different jobs. A receiving key, signature field and complete
-transaction proof must be budgeted separately.
+**My engineering assessment for Cyber's requirements.** These grades compare
+mechanisms and tradeoffs; they are not benchmark scores or security certificates.
 
-| Quantity | Quantus | Neptune Privacy | Neptune Cash | Current Mudra | Proposed Mudra |
-|---|---|---|---|---|---|
-| Transparent signature field | **5,262 / 7,220 B**, including public key and enum | Native proof authorization | Native proof authorization | Native proof authorization | Preserve native proof authorization |
-| Receiving material | Public account destination | Generation **2,168 B**; optional short payload **64 B**, subaddress **72 B** | Generation **2,168 B** | CSIDH-512 curve **64 B**; full address encoding separate | Parameter-dependent; authors' dCTIDH-2048 key is **264 B** |
-| Secret-delivery overhead | No encrypted-note capsule in reviewed Wormhole path | Generation KEM **2,560 B**; short-mode ephemeral key **64 B**, before field encoding | Generation KEM **2,560 B** | BBG's per-output stealth scheme needs an ephemeral public announcement; seal size depends on chosen profile | Stealth announcement plus OMR clue if enabled |
+**🟢 3 — strong fit · 🟡 2 — material tradeoff · 🔴 1 — weak fit · ? — unestablished**
 
-XNT layouts were checked with pinned dependency serialization. Its short mode
-saves normally **2,480 B per equal-payload announcement** after field encoding,
-including the length/header differences. Generation text addresses are **3,482
-characters**, XNT short addresses **116**. This is a real bandwidth benefit;
-stronger CSIDH parameters change that tradeoff.
+**XNT** = Neptune Privacy; **NPT** = Neptune Cash.
+**Cyber¹** = current specification; **Cyber+²** = proposed architecture target.
+The two Cyber columns assess designs, not delivered guarantees.
 
-Published CTIDH-512 action+validation costs **129.64 million cycles** on a
-3 GHz Xeon E3-1220v5 (~43 ms). dCTIDH-2048 action costs **1,409 million cycles**
-on an i7-6700. These are distinct primitive/profile measurements, not mobile
-send times. Per-output NIKE scanning pays an action per candidate unless a
-separate discovery/filtering mechanism reduces candidates.
-[Sources and operation boundaries](signature-optimality/mudra-design.md#stealth-distinguish-variants-parameters-and-measurements).
+| Criterion | Quantus | XNT | NPT | Cyber¹ | Cyber+² |
+|---|:---:|:---:|:---:|:---:|:---:|
+| Hidden amounts | 🔴 1 | 🟢 3 | 🟢 3 | 🟢 3 | 🟢 3 |
+| Recipient-selection privacy | 🔴 1 | 🔴 1 | 🟡 2 | 🟡 2 | 🟢 3 |
+| Low client recovery work | 🟢 3 | 🟢 3 | 🔴 1 | 🔴 1 | 🟡 2 |
+| Verified history coverage | 🔴 1 | 🔴 1 | 🔴 1 | 🟡 2 | 🟢 3 |
+| Programmable authority | 🟡 2 | 🟢 3 | 🟢 3 | 🟢 3 | 🟢 3 |
+| Low crypto review burden | 🟡 2 | 🟡 2 | 🟡 2 | 🔴 1 | 🔴 1 |
+| Measured private-send speed | ? | ? | ? | ? | ? |
 
-**No comparable full private-transfer latency winner is established.** Quantus's
-reported ~266 KB is a **371-capacity public aggregate**, not one wallet proof.
-XNT's advertised one-second L2 is not a measured released-L1 transfer.
-The decisive benchmark should report one equal-input/output private transfer,
-proof bytes/time/RAM, and seed restore plus incremental update at fixed history
-and wallet sizes on the same target hardware.
+The grades have specific reasons:
 
-## Decisions to finalize
+- **Recovery:** Quantus and XNT index a wallet's history on the server.
+  NPT and current BBG scan global history on the client. OMR reduces downloaded
+  payloads and client decryption, but retains a compact history-sized digest
+  and substantial server work; hence Cyber+ gets **2**, not a free **3**.
+- **Query trust:** NPT's common-history scan hides discovery interests, but
+  witness requests leak information. Current Cyber has the Inf proof contract;
+  the private-recovery composition is the extension. Coverage proves that the
+  declared history was processed; detection errors and overflow need their own
+  bounds. IP addresses, session timing and queried ranges remain observable.
+- **Complexity:** both Neptunes combine proofs with a custom KEM; XNT also
+  offers CTIDH. Cyber adds its own Hemera and RLWE/polynomial-commitment state
+  composition; the extension adds OMR's homomorphic encryption/PIR. The lower
+  grade reflects that additional qualification burden, not predicted bug rates.
+- **Speed:** no matched full private-transfer benchmark supports a ranking.
 
-1. **Preserve proof authorization.** Bind ownership to the complete action and
-   stable subject's versioned policy. A standalone signature becomes a separate
-   choice only if we require independently transferable signed messages outside
-   that proof contract. Quantus remains useful as a cross-verification source.
-2. **Choose an exact stealth profile and scan budget.** CSIDH-512's 64-byte key
-   does not establish today's target quantum margin. The high-security study
-   uses **2048/4096-bit primes for level 1 under different attack-resource
-   models**. A seed length or field width is not a security estimate.
-   [Parameter analysis](https://thomwiggers.nl/publications/secsidh/secsidh.pdf).
-3. **Resolve seal's standard-versus-native construction.** The spec combines
-   Goldilocks/degree 64/rank 4 with standard ML-KEM sizes. FIPS 203 uses
-   modulus 3329/degree 256. Choose standard interoperability or qualify a
-   separately named native construction; standard sizes/security do not transfer.
-   [Exact discrepancy](signature-optimality/mudra-design.md#seal-a-consequential-parameter-ambiguity).
-4. **Separate discovery from exclusive spend authority.** A NIKE shared secret
-   is also known to the sender. Specify ephemeral public announcements,
-   authenticated key epochs and independent viewing/spending relations. XNT's
-   short-address mapping provides a concrete integration counterexample:
-   its lock witness is derived from public address bytes. An offline VM check
-   confirms that predicate issue; it does not break CSIDH.
-   [Source and bounded reproduction](signature-optimality/neptune-privacy.md#ctidh-genuine-bandwidth-benefit-separate-parameter-and-integration-questions).
+[Detailed mechanisms, versions and evidence](signature-optimality/comparison-details.md)
+remain available separately. No total score is used: strong recovery cannot
+compensate for disclosing amounts when amount privacy is a requirement.
 
 ## UnifOMR: what the new paper changes
 
-The fifth column combines private discovery with our existing proof stack.
-[UnifOMR Param2](https://eprint.iacr.org/archive/2026/910/1778291181.pdf#page=36)
-reports **41 s server / 54 ms client**, **5,955 KB digest**, **48 MB keys** and
-**2,565 B clue per message** for one recipient, 524,288 messages, 50 matches and
-612-byte payloads. These are author measurements before Cyber proof overhead.
-Server detection and the compact client digest still scale with global message
-count. See [measurement and error qualifications](signature-optimality/unifomr-evidence.md).
+**OMR means Oblivious Message Retrieval:** retrieving your messages without the
+server learning which messages belong to you. For a wallet, the messages are
+encrypted payment notifications.
+
+With **UnifOMR**, the sender adds an encrypted detection clue. A server processes
+those clues using recipient-supplied encrypted detection material. The recipient
+decodes a compact response and privately retrieves candidate payloads using
+**PIR — Private Information Retrieval**. This moves expensive discovery work
+off the wallet while protecting its selection. It retains server-side history
+processing and adds clue/key storage. [Paper](https://eprint.iacr.org/2026/910).
 
 ### Cyber integration follow-up, 2026-09-12
 
-The selected home is an ordinary node capability or adjacent worker:
-**BBG commits the full board; Inf defines complete query semantics; Mudra
-supplies private operations; Zheng proves encrypted detection and PIR response
-computation.** This preserves recipient secrecy while authenticating execution
-over the requested root/range. Detection errors, overflow and transcript privacy
-remain explicit protocol requirements. The design trace is
-[Cybergraph private retrieval](../../cybergraph/docs/private-retrieval.md), with
-[Inf's coverage contract](../../inf/specs/proof.md#complete-input-coverage) and
+**OMR hides the selection; Inf/Zheng authenticate the computation.** BBG commits
+the complete notification board. Inf defines the root/range and complete-query
+semantics. Zheng proves encrypted detection and the PIR answer against that
+board, without the server needing the recipient's decryption key. The wallet
+then verifies note inclusion and spend state against canonical roots.
+
+This is the selected direction for a normal node capability or adjacent worker.
+Detection error, overflow, transcript privacy and data availability remain part
+of the contract. [Cybergraph design](../../cybergraph/docs/private-retrieval.md),
+[Inf coverage](../../inf/specs/proof.md#complete-input-coverage),
 [node roadmap C2.1](../../cyber/roadmap/c-network.md#c21-verifiable-private-retrieval).
+
+## What still needs a decision
+
+**Choose the exact CSIDH profile and scan budget; resolve standard ML-KEM versus
+a separately specified Goldilocks seal; finalize independent view/spend keys
+and action/policy binding.** These qualify the chosen architecture.
+[Parameter evidence](signature-optimality/mudra-design.md).
+
+## Concrete costs
+
+The retained [size and cost table](signature-optimality/comparison-details.md#concrete-costs)
+separates signatures, receiving material, encrypted notifications and proofs.
+The [UnifOMR measurements](signature-optimality/unifomr-evidence.md#costs-parameters-and-what-was-actually-measured)
+also account for server work, keys and per-message clues.
