@@ -1,0 +1,11 @@
+[package]
+name = "mudra-quantus-mldsa-crosscheck"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+# Standalone research executable; does not add a dependency to Mudra.
+[workspace]
+
+[dependencies]
+qp-rusty-crystals-dilithium = { git = "https://github.com/Quantus-Network/qp-rusty-crystals", rev = "3b1464f751d536aba023a53df2a4f4533ab94f62", default-features = false, features = ["ml-dsa-65", "ml-dsa-87"] }
