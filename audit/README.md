@@ -3,6 +3,7 @@
 Observed results and implementation assessments belong here. They do not change
 the accepted protocol specifications.
 
+- [2026-09-12 specification/research release scope](releases/specs-2026-09-12.md)
 - [Cyber crypto choice and visual assessment](signature-optimality.md)
 - [Private recovery: compact discovery, prepared state and sender-assisted indexing](private-recovery/README.md)
 - [Five-system comparison: detailed mechanisms, costs and evidence](signature-optimality/comparison-details.md)
