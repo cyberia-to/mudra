@@ -5,7 +5,7 @@
 // ---
 //! Fresh, domain-scoped secp256k1 identity — no legacy account to reproduce.
 //!
-//! [`seed`] recovers an *existing* Cosmos-SDK account: the BIP-32 path is
+//! [`spell`] recovers an *existing* Cosmos-SDK account: the BIP-32 path is
 //! fixed because a real chain already recognizes that key, there is no
 //! freedom in the derivation. This module is the other case: a brand-new
 //! identity, generated in a browser, with no prior account and no BIP-32

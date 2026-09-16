@@ -118,7 +118,7 @@ independent owner secret and verifier-checkable policy binding. static NIKE
 or a channel MAC alone does not provide transferable public authorization.
 
 [Private recovery](private-recovery.md) defines discovery, authenticated history
-coverage, spend-state verification and key lifecycle. a seed reconstructs keys;
+coverage, spend-state verification and key lifecycle. a spell reconstructs keys;
 the recovery service must also preserve the required ciphertext history/state.
 
 ## protocol qualification

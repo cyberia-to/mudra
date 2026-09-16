@@ -7,9 +7,9 @@
 //!
 //!   mudra                       banner + help
 //!   mudra new                   generate a fresh wallet
-//!   mudra derive <mnemonic…>    seed → addresses, pubkey, native neuron
-//!   mudra neuron <mnemonic…>    native neuron id = Hemera(pubkey)
-//!   mudra claim  <mnemonic…>    sign a migration claim (legacy key → native neuron)
+//!   mudra derive <spell…>    spell → addresses, pubkey, native neuron
+//!   mudra neuron <spell…>    native neuron id = Hemera(pubkey)
+//!   mudra claim  <spell…>    sign a migration claim (legacy key → native neuron)
 //!   mudra verify <claim>        verify a migration claim
 //!
 //! The bridge for migrating a Cosmos-SDK account (spacepussy first) into a
@@ -19,7 +19,7 @@ use std::io::{self, IsTerminal};
 use std::process::exit;
 
 use mudra::claim::{self, Claim};
-use mudra::{cosmos, seed};
+use mudra::{cosmos, spell};
 
 // ── color ───────────────────────────────────────────────────────────────────
 
@@ -78,13 +78,13 @@ fn help() {
         "{}\n  {}\n  {}\n  {}\n  {}\n  {}\n\n  {}\n    {}\n\n  {}",
         dim("commands"),
         format!("{}                    {}", bold("new"), dim("generate a fresh 24-word wallet")),
-        format!("{}     {}", bold("derive <mnemonic…>"), dim("seed → pussy/bostrom address, pubkey, neuron")),
-        format!("{}     {}", bold("neuron <mnemonic…>"), dim("native neuron id = Hemera(pubkey)")),
-        format!("{}      {}", bold("claim <mnemonic…>"), dim("sign a claim binding the legacy key → neuron")),
+        format!("{}     {}", bold("derive <spell…>"), dim("spell → pussy/bostrom address, pubkey, neuron")),
+        format!("{}     {}", bold("neuron <spell…>"), dim("native neuron id = Hemera(pubkey)")),
+        format!("{}      {}", bold("claim <spell…>"), dim("sign a claim binding the legacy key → neuron")),
         format!("{}          {}", bold("verify <claim>"), dim("verify a migration claim")),
         dim("flags"),
         format!("{}   {}", bold("--bostrom"), dim("use the bostrom prefix instead of pussy")),
-        dim("mnemonic words follow the subcommand; default prefix is pussy"),
+        dim("spell words follow the subcommand; default prefix is pussy"),
     );
 }
 
@@ -107,8 +107,8 @@ fn field(label: &str, value: &str) {
 
 // ── commands ────────────────────────────────────────────────────────────────
 
-fn cmd_derive(mnemonic: &str, hrp: &str) {
-    let key = seed::cosmos_key(mnemonic, "").unwrap_or_else(|e| die(e));
+fn cmd_derive(spell: &str, hrp: &str) {
+    let key = spell::cosmos_key(spell, "").unwrap_or_else(|e| die(e));
     let pubkey = cosmos::compressed(key.verifying_key());
     let addr = cosmos::address(&pubkey, hrp).unwrap_or_else(|e| die(e));
     let neuron = claim::neuron_of(&pubkey);
@@ -117,14 +117,14 @@ fn cmd_derive(mnemonic: &str, hrp: &str) {
     field("neuron", &green(&hex(&neuron)));
 }
 
-fn cmd_neuron(mnemonic: &str) {
-    let key = seed::cosmos_key(mnemonic, "").unwrap_or_else(|e| die(e));
+fn cmd_neuron(spell: &str) {
+    let key = spell::cosmos_key(spell, "").unwrap_or_else(|e| die(e));
     let neuron = claim::neuron_of(&cosmos::compressed(key.verifying_key()));
     println!("  {}", green(&hex(&neuron)));
 }
 
-fn cmd_claim(mnemonic: &str, hrp: &str) {
-    let key = seed::cosmos_key(mnemonic, "").unwrap_or_else(|e| die(e));
+fn cmd_claim(spell: &str, hrp: &str) {
+    let key = spell::cosmos_key(spell, "").unwrap_or_else(|e| die(e));
     let pubkey = cosmos::compressed(key.verifying_key());
     let neuron = claim::neuron_of(&pubkey);
     let c = claim::create(&key, hrp, neuron).unwrap_or_else(|e| die(e));
@@ -149,15 +149,15 @@ fn cmd_verify(input: &str, hrp: &str) {
 }
 
 fn cmd_new(hrp: &str) {
-    let mnemonic = bip39::Mnemonic::generate(24).unwrap_or_else(|e| die(e));
-    let phrase = mnemonic.to_string();
-    let key = seed::cosmos_key(&phrase, "").unwrap_or_else(|e| die(e));
+    let spell = bip39::Mnemonic::generate(24).unwrap_or_else(|e| die(e));
+    let phrase = spell.to_string();
+    let key = spell::cosmos_key(&phrase, "").unwrap_or_else(|e| die(e));
     let pubkey = cosmos::compressed(key.verifying_key());
     let addr = cosmos::address(&pubkey, hrp).unwrap_or_else(|e| die(e));
-    field("mnemonic", &yellow(&phrase));
+    field("spell", &yellow(&phrase));
     field("account", &cyan(&addr));
     field("neuron", &green(&hex(&claim::neuron_of(&pubkey))));
-    println!("  {}", dim("↑ write the mnemonic down — it is the only key to this account"));
+    println!("  {}", dim("↑ write the spell down — it is the only key to this account"));
 }
 
 fn main() {
@@ -182,19 +182,19 @@ fn main() {
         "new" => cmd_new(hrp),
         "derive" | "address" => {
             if rest.is_empty() {
-                die("usage: mudra derive <mnemonic…>");
+                die("usage: mudra derive <spell…>");
             }
             cmd_derive(&rest, hrp);
         }
         "neuron" => {
             if rest.is_empty() {
-                die("usage: mudra neuron <mnemonic…>");
+                die("usage: mudra neuron <spell…>");
             }
             cmd_neuron(&rest);
         }
         "claim" => {
             if rest.is_empty() {
-                die("usage: mudra claim <mnemonic…>");
+                die("usage: mudra claim <spell…>");
             }
             cmd_claim(&rest, hrp);
         }

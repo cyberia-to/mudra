@@ -16,7 +16,7 @@
 //! one place classical signatures are structurally required. This crate
 //! currently implements that bridge:
 //!
-//! - [`seed`]  — BIP-39 mnemonic → seed → BIP-32/44 secp256k1 key (coin type 118),
+//! - [`spell`]  — BIP-39 words → derived spell material → BIP-32/44 secp256k1 key (coin type 118),
 //!   behind the `bridge` feature (on by default)
 //! - [`cosmos`] — compressed pubkey → `ripemd160(sha256(pk))` → bech32 address
 //! - [`claim`] — ADR-036 sign/verify of a `legacy address → native neuron` binding
@@ -40,7 +40,7 @@ pub mod domain;
 #[cfg(feature = "prove")]
 pub mod proof;
 #[cfg(feature = "bridge")]
-pub mod seed;
+pub mod spell;
 
 pub use claim::Claim;
 
@@ -53,8 +53,8 @@ pub use k256::ecdsa::SigningKey;
 /// Errors from the legacy-key bridge.
 #[derive(Debug)]
 pub enum Error {
-    /// The BIP-39 mnemonic could not be parsed.
-    Mnemonic(String),
+    /// The BIP-39 spell could not be parsed.
+    Spell(String),
     /// HD derivation (BIP-32/44) failed for the given path.
     Derive(String),
     /// Address encoding failed (bad HRP or bech32 error).
@@ -66,7 +66,7 @@ pub enum Error {
 impl core::fmt::Display for Error {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            Error::Mnemonic(m) => write!(f, "invalid mnemonic: {m}"),
+            Error::Spell(m) => write!(f, "invalid spell: {m}"),
             Error::Derive(m) => write!(f, "HD derivation failed: {m}"),
             Error::Bech32(m) => write!(f, "address encoding failed: {m}"),
             Error::Key(m) => write!(f, "malformed key or signature: {m}"),
