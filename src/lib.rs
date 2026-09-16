@@ -37,6 +37,7 @@
 pub mod claim;
 pub mod cosmos;
 pub mod domain;
+pub mod neuron;
 #[cfg(feature = "prove")]
 pub mod proof;
 #[cfg(feature = "bridge")]
