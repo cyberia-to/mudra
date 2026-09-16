@@ -5,10 +5,11 @@
 // ---
 //! mudra — cryptographic primitives: confidentiality, distribution, delay, ordering, position.
 //!
-//! Most of mudra is post-quantum and signature-free by design: a neuron's
-//! identity is `Hemera(secret)` and authentication is a zheng proof of hash
-//! preimage. Those modules (seal/stealth/veil/quorum/delay/order/place) are
-//! specified in `specs/` and not yet implemented.
+//! The implemented native secp256k1 profile identifies a neuron by
+//! `Hemera(compressed public key)`. [`neuron`] owns its bounded NSIG1 statement
+//! authentication; [`domain`] supplies separately domain-derived keys.
+//! Post-quantum/hash-preimage profiles and seal/stealth/veil/quorum/delay/order/
+//! place retain their own specifications and are not implemented by these APIs.
 //!
 //! **Phase 1 — the legacy-key bridge.** To migrate an existing Cosmos-SDK
 //! network (spacepussy first), we must let a holder prove control of the
@@ -35,6 +36,7 @@
 //! becomes.
 
 pub mod claim;
+pub use neuron_id::NeuronId;
 pub mod cosmos;
 pub mod domain;
 pub mod neuron;

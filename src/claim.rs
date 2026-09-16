@@ -5,12 +5,11 @@
 // ---
 //! Migration claims — binding a legacy Cosmos key to a native neuron.
 //!
-//! A migrated network's neuron records are moved by snapshot, but that leaves
-//! them orphaned: native authentication is `Hemera(secret)` of a *new* secret
-//! nobody holds. A **claim** returns control to the original holder. They sign,
-//! with the secp256k1 key they already have, a message binding their legacy
-//! address to a native neuron. Anyone can then verify the binding — this is the
-//! single point where a classical signature is structurally required.
+//! A holder signs with their existing secp256k1 key to bind a legacy address
+//! to an explicitly chosen native neuron. The supported native key identity is
+//! Hemera(compressed public key); migration does not invent an unknown secret.
+//! A verified claim records the legacy holder's authorization of that binding.
+//! It does not grant custody of the target or replace the native action profile.
 //!
 //! The message is signed as an **ADR-036** "offline" sign doc (Cosmos's scheme
 //! for signing arbitrary data — what Keplr's `signArbitrary` produces), so a
@@ -85,11 +84,10 @@ fn from_hex(s: &str) -> Option<Vec<u8>> {
 
 /// The canonical native neuron id for a legacy account: `Hemera(pubkey)`.
 ///
-/// This is the deterministic self-neuron every migrated account maps to when
-/// its pubkey is known. A holder re-keying to a fresh post-quantum secret binds
-/// to `Hemera(new_secret)` instead — [`create`] takes the target neuron as
-/// input, so either works.
-pub fn neuron_of(compressed_pubkey: &[u8]) -> [u8; 32] {
+/// Existing account and domain-key profiles use these exact bytes. A claim may
+/// explicitly name another target, but proving target custody or changing its
+/// authentication profile is a separate versioned protocol.
+pub fn neuron_of(compressed_pubkey: &[u8]) -> neuron_id::NeuronId {
     *hemera::hash(compressed_pubkey).as_bytes()
 }
 
@@ -165,13 +163,9 @@ pub fn verify(claim: &Claim, hrp: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::seed;
-
-    const MNEMONIC: &str =
-        "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
 
     fn key() -> SigningKey {
-        seed::cosmos_key(MNEMONIC, "").unwrap()
+        SigningKey::from_bytes((&[7u8; 32]).into()).unwrap()
     }
 
     #[test]
@@ -207,7 +201,7 @@ mod tests {
         let neuron = neuron_of(&cosmos::compressed(k.verifying_key()));
         let mut claim = create(&k, cosmos::PUSSY, neuron).unwrap();
         // a different account's pubkey no longer matches the address or sig
-        let other = seed::cosmos_key(MNEMONIC, "other").unwrap();
+        let other = SigningKey::from_bytes((&[8u8; 32]).into()).unwrap();
         claim.pubkey = cosmos::compressed(other.verifying_key());
         assert!(!verify(&claim, cosmos::PUSSY));
     }

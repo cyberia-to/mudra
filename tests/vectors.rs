@@ -7,6 +7,8 @@
 //! independent pure-Python BIP-32 secp256k1 derivation + BIP-173 bech32. If
 //! these break, the spell→key→address pipeline diverged from real Cosmos.
 
+#![cfg(feature = "bridge")]
+
 #[cfg(feature = "prove")]
 use mudra::proof::ecdsa;
 use mudra::{claim, cosmos, spell};

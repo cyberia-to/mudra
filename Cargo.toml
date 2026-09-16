@@ -39,6 +39,7 @@ name = "mudra"
 path = "src/lib.rs"
 
 [dependencies]
+neuron-id = { version = "0.1", path = "../neuron/id" }
 # native neuron identity: neuron = Hemera(pubkey)
 hemera = { package = "cyber-hemera", version = "0.3", path = "../hemera/rs" }
 
@@ -47,8 +48,8 @@ hemera = { package = "cyber-hemera", version = "0.3", path = "../hemera/rs" }
 nebu = { package = "strata-nebu", version = "0.1", path = "../strata/nebu/rs", optional = true }
 
 # phase 2e — actual proving pipeline (nox program → zheng proof). Heavy; opt-in.
-nox = { package = "cyber-nox", version = "0.1.2", path = "../nox/rs", optional = true }
-zheng = { version = "0.1.2", path = "../zheng/rs", optional = true }
+nox = { package = "cyber-nox", version = "0.3", path = "../nox/rs", optional = true }
+zheng = { version = "0.4", path = "../zheng/rs", optional = true }
 
 # secp256k1 — always on: `domain.rs` (fresh identity) and `claim.rs`'s
 # general ADR-036 sign/verify need it with or without the `bridge` feature.
@@ -86,7 +87,13 @@ name = "mudra"
 path = "src/bin/mudra.rs"
 required-features = ["bridge"]
 
+[[example]]
+name = "migrate"
+path = "examples/migrate.rs"
+required-features = ["bridge"]
+
 [dev-dependencies]
+serde_json = "1"
 hex = "0.4"
 # independent references for the phase-2 gadget tests only
 num-bigint = "0.4"
