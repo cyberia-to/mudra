@@ -1,0 +1,64 @@
+{
+  "mudra": {
+    "head": "348c46195388ac009667144987511a0e33bdc859",
+    "status": " M Cargo.lock\n M Cargo.toml\n M src/claim.rs\n M src/domain.rs\n M src/lib.rs\n M tests/vectors.rs\n?? specs/neuron-auth.md\n?? src/neuron.rs\n?? tests/domain_compat.rs\n?? tests/fixtures/\n",
+    "files_sha256": {
+      "src/bin/mudra.rs": "ea79887a51b69627badd6594c31a3fc37d53aa5b44be03e9e95c0b6e2984d149",
+      "src/claim.rs": "88cc2173b225e9bbd888cbbf63c883165c012503b2a0a0c0e330fc32d7ea4c55",
+      "src/cosmos.rs": "5fbda6bda203812f27695ae03f586db9c904c2ae94d70da84465d2fb521031d0",
+      "src/domain.rs": "f9c8f4bc18e981b34a0a71f1842982968d194b1a11859136b3c9b3cef4851712",
+      "src/lib.rs": "ee20bc44eec1fb912eaa381c3572abae2fb16cfa7c9773dbb25022a0966c4979",
+      "src/neuron.rs": "c0a0d038257b5033ea5f56568348eed38b8bb2d96bfc52b6948f0488acd10e38",
+      "src/proof/curve.rs": "5938992f6019874264da8163f040b6d7280f7b028e4bb5172714ef49c097b56e",
+      "src/proof/ecdsa.rs": "12bb50e1c49c91b1b9ce575e1b143ba3dd6d4e1130af7a0416419ed13561f472",
+      "src/proof/field.rs": "1523d88fb702f67f4d38617c743f21ee6baa0fcf533d9ed8941022d80db9be03",
+      "src/proof/mod.rs": "55c8e1f67590578110d334d482807c08f6a1f2b628496354ce6ea34bd60e3b5d",
+      "src/proof/prove.rs": "11d38ce146e9114a761f297a944a1f54df78a75408f097ecb9d66bb5a4d6ff11",
+      "src/proof/ripemd160.rs": "71e4dbafec31a7cb20ad81fbbdbae7e6979a03d1b59341b5eddcce562be53a7d",
+      "src/proof/scalar.rs": "d19b27438a49737fe35ac28f9af30f48443365ea423e9cfc48a3940cad9b2a9a",
+      "src/proof/sha256.rs": "62541c3a59e6896d89d95a66fe0ef661776425a061281b265c44d745f7b8737c",
+      "src/seed.rs": "42aa8f9b33531bc64e6e22fd28c20b851667d4a7193aaae9ddb344a9bb672797",
+      "specs/README.md": "b72e2aa70ffee1366b06efe05b3ad2f7babe5d446c5e397ef09fd3ec931d6d2c",
+      "specs/bridge-proof.md": "5debb406a5ffb957fb67f8bce8d037ae9acde803fa84c6f258f937d1e11fecd3",
+      "specs/bridge.md": "484fd656ccaf3df84105557faedaa1cd6fe908bb01b2a3d4122258928ae070ed",
+      "specs/delay.md": "8079be7966b5491522ab3be3f73cf4ebb586817221d74ec423105f5e92c04fbf",
+      "specs/identity.md": "0e73509773fa1b0aca6fcf19da0c28051fc5509d3dbc6936a00ece36c4d9d81d",
+      "specs/neuron-auth.md": "dbb57bbb7d543c69737f090b1bec4c5537fca78c79427b403d19debb076c4f92",
+      "specs/neuron-measures.md": "87bc4e7d95868fa1af11337b924e6686854352be50e67055d6fb26b22da8f18c",
+      "specs/place.md": "4938a8a04bc49b433d89e336884bb74f668cd365aa23b4f9874b436ecb356d52",
+      "specs/private-recovery.md": "c0b86099b90cb554f813abf247f792773f9592bbea40fd92e58099cd8182ee76",
+      "specs/props/README.md": "3f971d0fa741b27292e80131165840a66360a7d76a27265a11c0dbadad6f7567",
+      "specs/props/private-recovery-index.md": "3ce3aa0303f69627c049458952ba56d4b5be1917ad6cba0ee499f029481b277f",
+      "specs/quorum.md": "81029fefc97faeffcc75abb2646868bd3dceb4a4d637905e5d3e1a1a917dff27",
+      "specs/seal.md": "77ba7c61a3c6fe0d2857bc05f8576d91e88e20acaf7395fc183d5fae8e612ac4",
+      "specs/stealth.md": "c015a6a6eb952b563ada912cca22c7bafdde11ebb9dc9c95ece1e47afab4890a",
+      "specs/veil.md": "fab35b3c731ca15a450bfe222aac42082ccc88ba15c6c73b85c0e98886e41960",
+      "tests/domain_compat.rs": "f8855a7b1d05561e73429756520127b10007a4faa066ce695bf802e90f0cc16b",
+      "tests/fixtures/domain-v1.json": "126119e1df8981dc8fdac78f2dad7f40e2f26d17cd431755879b5527998e93a4",
+      "tests/vectors.rs": "69b07dd0303409694de79421ffbd0ca4a156e3802500b0beae56e8e5d608a9ab",
+      "Cargo.toml": "ca833aaefab3258b6116db14b86c7d88b533a51451ea2de97a059b84728634a3",
+      "Cargo.lock": "b994cda603ccb22d50683870793c47fb27ede11134f8be76114b344ce73e5d1a",
+      "README.md": "89a8607f0570c420bd1631946fb3dff84ee827a7bd1b4a99a621b820f82823d4"
+    }
+  },
+  "neuron": {
+    "head": "34bbff9dbf36421a45c5c283e6c1336dcafc997a",
+    "status": " M CLAUDE.md\n M Cargo.lock\n M Cargo.toml\n M README.md\n M cli/Cargo.toml\n M cli/src/main.rs\n M cli/tests/process.rs\n M cli/tests/storage.rs\n M docs/README.md\n M docs/cell-convergence.md\n M docs/conformance-local.md\n M docs/foundations-agent-review.md\n M docs/history-ownership.md\n M docs/implementation.md\n M engine/Cargo.toml\n D engine/src/engine.rs\n D engine/src/execution.rs\n M engine/src/lib.rs\n D engine/src/records.rs\n M model/Cargo.toml\n M model/src/data.rs\n M model/src/lib.rs\n M model/tests/data.rs\n M node/Cargo.toml\n M node/src/lib.rs\n M node/tests/recovery.rs\n D node/tests/runtime.rs\n M rune/Cargo.toml\n M rune/src/lib.rs\n M specs/README.md\n M specs/agent.md\n M specs/api.md\n M specs/authority.md\n M specs/communication.md\n M specs/conformance.md\n M specs/data.md\n M specs/evaluation.md\n M specs/evidence.md\n M specs/evolution.md\n M specs/execution.md\n M specs/foundations.md\n M specs/history.md\n M specs/integration.md\n M specs/lifecycle.md\n M specs/local-runtime.md\n M specs/model.md\n?? audit/legacy-cell-convergence.md\n?? audit/legacy-conformance-local.md\n?? audit/legacy-foundations-agent-review.md\n?? audit/legacy-history-ownership.md\n?? audit/legacy-implementation.md\n?? cli/src/archive.rs\n?? docs/legacy-cutover.md\n?? engine/src/jobs.rs\n?? engine/src/legacy.rs\n?? engine/src/legacy/\n?? engine/src/migration.rs\n?? engine/src/neuron.rs\n?? engine/src/worker.rs\n?? id/\n?? model/schema-suite-neuron-v1.txt\n?? model/src/action.rs\n?? model/src/execution.rs\n?? model/src/identity.rs\n?? model/src/navigation.rs\n?? model/src/worker.rs\n?? model/tests/execution.rs\n?? model/tests/identity.rs\n?? node/src/archive.rs\n?? node/src/authority.rs\n?? node/src/query.rs\n?? node/src/transfer.rs\n?? node/src/validation.rs\n?? node/src/worker.rs\n?? node/tests/authority_boundary.rs\n?? node/tests/fixtures/\n?? node/tests/legacy_capture.rs\n?? node/tests/legacy_integrity.rs\n?? node/tests/neuron_migration.rs\n?? node/tests/neuron_runtime.rs\n?? node/tests/query_projection.rs\n?? node/tests/support/\n?? node/tests/transfer.rs\n?? node/tests/worker_dispatch.rs\n?? specs/action-envelope.md\n?? specs/cli.md\n?? specs/identity.md\n?? specs/local-authority.md\n?? specs/migration.md\n?? specs/navigation.md\n?? specs/query-projection.md\n?? specs/runtime-v1.md\n?? specs/worker-dispatch.md\n"
+  },
+  "hemera": {
+    "head": "fef673fd8e1bee37e8267d4bac43b88db0e57cfa",
+    "status": " M CLAUDE.md\n"
+  },
+  "nox": {
+    "head": "2612673cae64239cb3511b13027d9ffaba77f48e",
+    "status": " M Cargo.lock\n M cli/Cargo.toml\n M rs/Cargo.toml\n M rs/jets/backends/cpu.rs\n M rs/jets/backends/honeycrisp.rs\n M rs/jets/mod.rs\n M rs/jets/ntt.rs\n M rs/jets/poly_eval.rs\n M rs/jets/registry.rs\n M rs/reduce.rs\n M specs/jets.md\n M specs/jets/README.md\n?? audit/\n?? rs/jets/admission.rs\n?? rs/jets/admission_tests.rs\n?? specs/jets/input-admission.md\n"
+  },
+  "zheng": {
+    "head": "0670d3416b413550487344acd7bfd2c5e732546b",
+    "status": " M CLAUDE.md\n M Cargo.lock\n M cli/Cargo.toml\n M rs/Cargo.toml\n M rs/src/ccs/transcript.rs\n M rs/src/ccs/verifier_steps.rs\n M rs/src/execution/hash.rs\n M rs/src/execution/mod.rs\n M rs/src/execution/relation.rs\n M rs/src/execution/relation_bits.rs\n M rs/src/execution/relation_tests.rs\n M rs/src/execution/statement.rs\n M rs/src/execution/statement_wire.rs\n M rs/src/lib.rs\n M specs/execution.md\n?? audit/general-nox-relation-review.md\n?? audit/private-execution-release.md\n?? audit/tagged-relation-validation.md\n?? rs/examples/\n?? rs/src/execution/budget_tests.rs\n?? rs/src/execution/call_tests.rs\n?? rs/src/execution/private.rs\n?? rs/src/execution/private_state.rs\n?? rs/src/execution/private_state_tests.rs\n?? rs/src/execution/relation_eval.rs\n?? rs/src/execution/relation_look.rs\n?? rs/src/execution/state.rs\n?? rs/src/execution/state_tests.rs\n?? rs/src/execution/tagged/\n?? specs/ccs-execution-backends.md\n?? specs/props/\n"
+  },
+  "strata": {
+    "head": "7f6864abd2d989cfade7ffd0c13890de1f4b0c4e",
+    "status": " M cli/src/main.rs\n"
+  }
+}

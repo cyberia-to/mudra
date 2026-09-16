@@ -1,0 +1,93 @@
+ M CLAUDE.md
+ M Cargo.lock
+ M Cargo.toml
+ M README.md
+ M cli/Cargo.toml
+ M cli/src/main.rs
+ M cli/tests/process.rs
+ M cli/tests/storage.rs
+ M docs/README.md
+ M docs/cell-convergence.md
+ M docs/conformance-local.md
+ M docs/foundations-agent-review.md
+ M docs/history-ownership.md
+ M docs/implementation.md
+ M engine/Cargo.toml
+ D engine/src/engine.rs
+ D engine/src/execution.rs
+ M engine/src/lib.rs
+ D engine/src/records.rs
+ M model/Cargo.toml
+ M model/src/data.rs
+ M model/src/lib.rs
+ M model/tests/data.rs
+ M node/Cargo.toml
+ M node/src/lib.rs
+ M node/tests/recovery.rs
+ D node/tests/runtime.rs
+ M rune/Cargo.toml
+ M rune/src/lib.rs
+ M specs/README.md
+ M specs/agent.md
+ M specs/api.md
+ M specs/authority.md
+ M specs/communication.md
+ M specs/conformance.md
+ M specs/data.md
+ M specs/evaluation.md
+ M specs/evidence.md
+ M specs/evolution.md
+ M specs/execution.md
+ M specs/foundations.md
+ M specs/history.md
+ M specs/integration.md
+ M specs/lifecycle.md
+ M specs/local-runtime.md
+ M specs/model.md
+?? audit/legacy-cell-convergence.md
+?? audit/legacy-conformance-local.md
+?? audit/legacy-foundations-agent-review.md
+?? audit/legacy-history-ownership.md
+?? audit/legacy-implementation.md
+?? cli/src/archive.rs
+?? docs/legacy-cutover.md
+?? engine/src/jobs.rs
+?? engine/src/legacy.rs
+?? engine/src/legacy/
+?? engine/src/migration.rs
+?? engine/src/neuron.rs
+?? engine/src/worker.rs
+?? id/
+?? model/schema-suite-neuron-v1.txt
+?? model/src/action.rs
+?? model/src/execution.rs
+?? model/src/identity.rs
+?? model/src/navigation.rs
+?? model/src/worker.rs
+?? model/tests/execution.rs
+?? model/tests/identity.rs
+?? node/src/archive.rs
+?? node/src/authority.rs
+?? node/src/query.rs
+?? node/src/transfer.rs
+?? node/src/validation.rs
+?? node/src/worker.rs
+?? node/tests/authority_boundary.rs
+?? node/tests/fixtures/
+?? node/tests/legacy_capture.rs
+?? node/tests/legacy_integrity.rs
+?? node/tests/neuron_migration.rs
+?? node/tests/neuron_runtime.rs
+?? node/tests/query_projection.rs
+?? node/tests/support/
+?? node/tests/transfer.rs
+?? node/tests/worker_dispatch.rs
+?? specs/action-envelope.md
+?? specs/cli.md
+?? specs/identity.md
+?? specs/local-authority.md
+?? specs/migration.md
+?? specs/navigation.md
+?? specs/query-projection.md
+?? specs/runtime-v1.md
+?? specs/worker-dispatch.md

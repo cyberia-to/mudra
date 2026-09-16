@@ -1,0 +1,10 @@
+{
+  "command": [
+    "/tmp/neuron-mudra-readiness-20260916/target/debug/mudra",
+    "verify",
+    "addr aéa aa aa"
+  ],
+  "exit": 101,
+  "stdout": "",
+  "stderr": "\nthread 'main' (2527602) panicked at src/claim.rs:82:58:\nend byte index 2 is not a char boundary; it is inside 'é' (bytes 1..3) of `aéa`\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n"
+}

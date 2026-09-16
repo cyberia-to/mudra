@@ -1,0 +1,52 @@
+   Compiling rand_core v0.6.4
+   Compiling serde_core v1.0.228
+   Compiling ff v0.13.1
+   Compiling group v0.13.0
+   Compiling crypto-bigint v0.5.5
+   Compiling signature v2.2.0
+   Compiling elliptic-curve v0.13.8
+   Compiling ecdsa v0.16.9
+   Compiling k256 v0.13.4
+   Compiling cyber-mudra v0.1.0 (/Users/master/cyber/mudra)
+   Compiling serde_json v1.0.151
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.54s
+     Running unittests src/lib.rs (/tmp/neuron-mudra-readiness-20260916/target/debug/deps/mudra-61343f7bda227483)
+
+running 16 tests
+test claim::tests::decode_rejects_malformed ... ok
+test claim::tests::neuron_of_is_deterministic ... ok
+test claim::tests::round_trip_claim_verifies ... ok
+test claim::tests::claim_encodes_and_decodes_round_trip ... ok
+test claim::tests::swapped_pubkey_is_rejected ... ok
+test claim::tests::wrong_hrp_is_rejected ... ok
+test cosmos::tests::address_matches_cosmos_sdk_known_vector ... ok
+test claim::tests::tampered_neuron_is_rejected ... ok
+test cosmos::tests::pussy_prefix_is_applied ... ok
+test cosmos::tests::same_key_different_chains_share_account_id ... ok
+test domain::tests::bech32_uses_hrp ... ok
+test domain::tests::domain_scalar_is_deterministic_and_domain_bound ... ok
+test domain::tests::different_domains_different_keys ... ok
+test domain::tests::native_id_matches_the_bridge_formula ... ok
+test domain::tests::same_entropy_same_domain_same_key ... ok
+test neuron::tests::native_subject_message_domain_and_exact_envelope_are_bound ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/domain_compat.rs (/tmp/neuron-mudra-readiness-20260916/target/debug/deps/domain_compat-3c142c5ec551bb10)
+
+running 1 test
+test domain_addresses_native_ids_adr036_docs_and_signatures_match_legacy_bytes ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/vectors.rs (/tmp/neuron-mudra-readiness-20260916/target/debug/deps/vectors-6b8537b774d715d4)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests mudra
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
