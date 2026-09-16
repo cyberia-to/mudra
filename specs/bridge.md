@@ -33,7 +33,7 @@ only the second step.
 ## pipeline
 
 ```
-mnemonic ──BIP-39──▶ seed ──BIP-32/44 (m/44'/118'/0'/0/0)──▶ secp256k1 key
+spell words ──BIP-39──▶ 64-byte material ──BIP-32/44 (m/44'/118'/0'/0/0)──▶ secp256k1 key
                                                                   │
                           compressed pubkey (33 B) ◀─────────────┘
                                    │
@@ -97,9 +97,9 @@ match bit-for-bit.
 ## surface
 
 ```
-seed::seed(mnemonic, passphrase)        -> [u8; 64]
-seed::signing_key(seed, path)           -> SigningKey
-seed::cosmos_key(mnemonic, passphrase)  -> SigningKey        // m/44'/118'/0'/0/0
+spell::derive(spell, passphrase)        -> [u8; 64]
+spell::signing_key(material, path)           -> SigningKey
+spell::cosmos_key(spell, passphrase)  -> SigningKey        // m/44'/118'/0'/0/0
 
 cosmos::compressed(verifying_key)       -> [u8; 33]
 cosmos::account_id(pubkey)              -> [u8; 20]          // ripemd160(sha256(pk))

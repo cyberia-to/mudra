@@ -7,7 +7,7 @@
 name = "cyber-mudra"
 version = "0.1.0"
 edition = "2024"
-description = "cryptographic primitives: keys, seeds, claims (phase 1); seal, stealth, veil, quorum, delay, order, place (spec)"
+description = "cryptographic primitives: keys, spells, claims (phase 1); seal, stealth, veil, quorum, delay, order, place (spec)"
 license-file = "LICENSE"
 
 [features]
@@ -23,13 +23,13 @@ license-file = "LICENSE"
 prove = ["dep:nebu", "dep:nox", "dep:zheng"]
 
 # the legacy-key bridge's HD-derivation path (BIP-32/39, Cosmos coin type
-# 118) — `seed.rs`, and `claim`/`cosmos`'s recovery-of-an-existing-account
+# 118) — `spell.rs`, and `claim`/`cosmos`'s recovery-of-an-existing-account
 # use. on by default (mudra's own CLI/tests need it); off for a downstream
 # crate that only wants fresh domain-scoped identity (`domain.rs`) and
 # cannot afford bip32/bip39 in its build — e.g. a wasm bundle, where bip32's
 # HMAC-SHA512 ladder and bip39's 2048-word list are exactly the weight
 # `domain.rs` exists to avoid. `domain`/`claim::sign_arbitrary`/`cosmos` do
-# not need this feature; only `seed` and `claim::create`/`verify`'s
+# not need this feature; only `spell` and `claim::create`/`verify`'s
 # BIP-32-recovered-key call sites do.
 default = ["bridge"]
 bridge = ["dep:bip32", "dep:bip39"]
@@ -39,6 +39,7 @@ name = "mudra"
 path = "src/lib.rs"
 
 [dependencies]
+neuron-id = { version = "0.1", path = "../neuron/id" }
 # native neuron identity: neuron = Hemera(pubkey)
 hemera = { package = "cyber-hemera", version = "0.3", path = "../hemera/rs" }
 
@@ -47,8 +48,8 @@ hemera = { package = "cyber-hemera", version = "0.3", path = "../hemera/rs" }
 nebu = { package = "strata-nebu", version = "0.1", path = "../strata/nebu/rs", optional = true }
 
 # phase 2e — actual proving pipeline (nox program → zheng proof). Heavy; opt-in.
-nox = { package = "cyber-nox", version = "0.1.2", path = "../nox/rs", optional = true }
-zheng = { version = "0.1.2", path = "../zheng/rs", optional = true }
+nox = { package = "cyber-nox", version = "0.3", path = "../nox/rs", optional = true }
+zheng = { version = "0.4", path = "../zheng/rs", optional = true }
 
 # secp256k1 — always on: `domain.rs` (fresh identity) and `claim.rs`'s
 # general ADR-036 sign/verify need it with or without the `bridge` feature.
@@ -86,7 +87,13 @@ name = "mudra"
 path = "src/bin/mudra.rs"
 required-features = ["bridge"]
 
+[[example]]
+name = "migrate"
+path = "examples/migrate.rs"
+required-features = ["bridge"]
+
 [dev-dependencies]
+serde_json = "1"
 hex = "0.4"
 # independent references for the phase-2 gadget tests only
 num-bigint = "0.4"

@@ -5,7 +5,7 @@
 // ---
 //! Fresh, domain-scoped secp256k1 identity — no legacy account to reproduce.
 //!
-//! [`seed`] recovers an *existing* Cosmos-SDK account: the BIP-32 path is
+//! [`spell`] recovers an *existing* Cosmos-SDK account: the BIP-32 path is
 //! fixed because a real chain already recognizes that key, there is no
 //! freedom in the derivation. This module is the other case: a brand-new
 //! identity, generated in a browser, with no prior account and no BIP-32
@@ -15,16 +15,12 @@
 //! unlinkability across domains only needs the hash to be domain-bound, which
 //! `Hemera(entropy ‖ domain)` already is.
 //!
-//! secp256k1 here is not the legacy bridge. mudra is post-quantum and
-//! signature-free by design everywhere else — a *native* neuron authenticates
-//! with a zheng proof of `Hemera(secret)` preimage, no classical signature at
-//! all. this module exists because a *browser* is not that native context:
-//! secp256k1 is what a browser extension wallet (`window.ethereum`, Keplr) or
-//! a ~4KB JS library (noble-secp256k1) already speaks, at zero-to-minimal
-//! wasm cost. that is a permanent property of the browser as a platform, not
-//! a migration this module outgrows — unlike [`crate::claim`], which exists
-//! only until every legacy account has bound itself to a native neuron and
-//! can be deleted.
+//! This profile remains secp256k1 with its existing domain KDF, address and
+//! ADR-036 sign bytes. The supported native action profile also uses the
+//! existing compressed-key identity; proof-native/post-quantum authentication
+//! requires a separately versioned implemented profile. Neither renaming a
+//! runtime component nor adding a prog rotates this browser key. Historical
+//! claims and their verifier remain readable after migration.
 //!
 //! reuses [`crate::cosmos`] for bech32 encoding and the same `Hemera(pubkey)`
 //! native-id convention [`crate::claim::neuron_of`] uses — one bech32
@@ -59,7 +55,7 @@ pub struct DomainKey {
     pub bech32: String,
     /// native id — `Hemera(compressed pubkey)`, the same formula
     /// [`crate::claim::neuron_of`] uses for the legacy bridge.
-    pub native: [u8; 32],
+    pub native: neuron_id::NeuronId,
 }
 
 impl std::fmt::Debug for DomainKey {

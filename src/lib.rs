@@ -5,10 +5,11 @@
 // ---
 //! mudra — cryptographic primitives: confidentiality, distribution, delay, ordering, position.
 //!
-//! Most of mudra is post-quantum and signature-free by design: a neuron's
-//! identity is `Hemera(secret)` and authentication is a zheng proof of hash
-//! preimage. Those modules (seal/stealth/veil/quorum/delay/order/place) are
-//! specified in `specs/` and not yet implemented.
+//! The implemented native secp256k1 profile identifies a neuron by
+//! `Hemera(compressed public key)`. [`neuron`] owns its bounded NSIG1 statement
+//! authentication; [`domain`] supplies separately domain-derived keys.
+//! Post-quantum/hash-preimage profiles and seal/stealth/veil/quorum/delay/order/
+//! place retain their own specifications and are not implemented by these APIs.
 //!
 //! **Phase 1 — the legacy-key bridge.** To migrate an existing Cosmos-SDK
 //! network (spacepussy first), we must let a holder prove control of the
@@ -16,7 +17,7 @@
 //! one place classical signatures are structurally required. This crate
 //! currently implements that bridge:
 //!
-//! - [`seed`]  — BIP-39 mnemonic → seed → BIP-32/44 secp256k1 key (coin type 118),
+//! - [`spell`]  — BIP-39 words → derived spell material → BIP-32/44 secp256k1 key (coin type 118),
 //!   behind the `bridge` feature (on by default)
 //! - [`cosmos`] — compressed pubkey → `ripemd160(sha256(pk))` → bech32 address
 //! - [`claim`] — ADR-036 sign/verify of a `legacy address → native neuron` binding
@@ -35,12 +36,14 @@
 //! becomes.
 
 pub mod claim;
+pub use neuron_id::NeuronId;
 pub mod cosmos;
 pub mod domain;
+pub mod neuron;
 #[cfg(feature = "prove")]
 pub mod proof;
 #[cfg(feature = "bridge")]
-pub mod seed;
+pub mod spell;
 
 pub use claim::Claim;
 
@@ -53,8 +56,8 @@ pub use k256::ecdsa::SigningKey;
 /// Errors from the legacy-key bridge.
 #[derive(Debug)]
 pub enum Error {
-    /// The BIP-39 mnemonic could not be parsed.
-    Mnemonic(String),
+    /// The BIP-39 spell could not be parsed.
+    Spell(String),
     /// HD derivation (BIP-32/44) failed for the given path.
     Derive(String),
     /// Address encoding failed (bad HRP or bech32 error).
@@ -66,7 +69,7 @@ pub enum Error {
 impl core::fmt::Display for Error {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            Error::Mnemonic(m) => write!(f, "invalid mnemonic: {m}"),
+            Error::Spell(m) => write!(f, "invalid spell: {m}"),
             Error::Derive(m) => write!(f, "HD derivation failed: {m}"),
             Error::Bech32(m) => write!(f, "address encoding failed: {m}"),
             Error::Key(m) => write!(f, "malformed key or signature: {m}"),

@@ -43,7 +43,7 @@ viewing/delivery secret must not confer exclusive spending authority.
 each accepted private payment has durably available recovery data sufficient
 to reconstruct its note and required openings. sender-generated randomness,
 nonce, payload and inclusion references cannot be regenerated from a recipient
-seed alone. off-chain delivery supplies an authenticated durable archive before
+spell alone. off-chain delivery supplies an authenticated durable archive before
 the payment is considered recoverable under this profile.
 
 the selected delivery construction binds:
@@ -114,13 +114,13 @@ spend when answering a current balance query.
 | mode | required result |
 |---|---|
 | incremental update | verified changes since a durable canonical cursor |
-| prepared seed restore | private discovery of a precomputed encrypted state/checkpoint and its authenticated tail |
-| unprepared seed restore | complete discovery over the declared retained history/key epochs |
+| prepared spell restore | private discovery of a precomputed encrypted state/checkpoint and its authenticated tail |
+| unprepared spell restore | complete discovery over the declared retained history/key epochs |
 | balance summary | verified totals at a pinned state root, with private asset/count framing |
 | spend preparation | privately selected note data/openings and current spendability |
 | full export | all requested notes/history, explicitly proportional to returned data |
 
-the seed and public protocol constants must locate every advertised key epoch,
+the spell and public protocol constants must locate every advertised key epoch,
 directory entry and durable recovery object. backup-dependent or previously
 registered fast paths state that prerequisite explicitly. a secret unbacked
 cursor, server-issued identifier or interactive acknowledgement cannot be the
