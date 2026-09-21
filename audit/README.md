@@ -15,3 +15,4 @@ the accepted protocol specifications.
 - [Quantus circuit and chain evidence](quantus-wormhole-evidence.md)
 - [Quantus wallet recovery and query evidence](quantus-wallet-evidence.md)
 - [Quantus / OpenSSL executable cross-verification](quantus-mldsa-crosscheck/README.md)
+- [Property 29: valence privacy leaks by construction, and collides with truth-scoring's public-graph assumption](p29-valence-report-leak.md)
