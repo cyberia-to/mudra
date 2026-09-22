@@ -174,6 +174,11 @@ impl Eq for Fe {}
 /// Carry-propagate a limb vector so every limb is a 16-bit digit. The final
 /// carry rides into an extra high limb if present. In-circuit each split is a
 /// range-check; here it is a native shift.
+///
+/// `assert_eq!`, not `debug_assert!`: callers size `limbs` on the promise
+/// that the sum fits (see `add`/`sub`'s comments); in release, silently
+/// dropping a real final carry truncates the field element to a wrong
+/// value instead of failing loudly at the point of the broken promise.
 fn normalize(limbs: &mut [u64]) {
     let mut carry = 0u64;
     for limb in limbs.iter_mut() {
@@ -181,7 +186,7 @@ fn normalize(limbs: &mut [u64]) {
         *limb = v & MASK;
         carry = v >> B;
     }
-    debug_assert_eq!(carry, 0, "normalize overflowed its limb vector");
+    assert_eq!(carry, 0, "normalize overflowed its limb vector");
 }
 
 /// The 16×16 schoolbook product, as 32 normalized 16-bit limbs.
@@ -375,6 +380,15 @@ mod tests {
     fn bytes_round_trip_below_q() {
         let v = &q_big() - BigUint::from(12345u32);
         assert_eq!(to_big(&from_big(&v)), v);
+    }
+
+    #[test]
+    #[should_panic(expected = "overflowed")]
+    fn normalize_rejects_a_carry_with_nowhere_to_go() {
+        // One limb sized to hold only 2^16 − 1; MASK+1 forces a real
+        // final carry that the vector has no slot for.
+        let mut limbs = vec![MASK + 1];
+        normalize(&mut limbs);
     }
 
     #[test]
