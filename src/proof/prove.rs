@@ -38,6 +38,7 @@ fn open_statement() -> Statement {
         input_hash: [0u8; 32],
         output_hash: [0u8; 32],
         focus_bound: 0,
+        bbg_root: [0u8; 32],
     }
 }
 
