@@ -1,6 +1,7 @@
 ---
 tags: mudra, audit, privacy
 date: 2026-09-21
+updated: 2026-09-22
 ---
 # P2 transfer privacy: stealth and veil implementation gap
 
@@ -27,8 +28,10 @@ in the clear.
 `balance()`. `NeuronId` is `[u8; 32]` ([neuron/id/src/lib.rs:9](../../neuron/id/src/lib.rs)),
 the same public identifier used everywhere else a neuron is referenced —
 not a per-payment stealth-derived address. Every balance and every mutation
-(`transfer`, mint, burn — landed in launch #13, #26, #30, #32, #33) is a
-plain `u64` against a plain public key. There is no ciphertext type, no
+(mint and burn on `main`; `transfer` in plumb#1, launch #13, open — none of
+plumb#1–#5 is merged as of 2026-09-22, and #26/#30/#32/#33 add stake yield,
+book roots, birth mint and fee distribution, all on the same plain ledger)
+is a plain `u64` against a plain public key. There is no ciphertext type, no
 stealth-address column, nothing between the public `NeuronId` and the
 integer amount.
 
