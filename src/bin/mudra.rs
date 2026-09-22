@@ -160,19 +160,35 @@ fn cmd_new(hrp: &str) {
     println!("  {}", dim("↑ write the mnemonic down — it is the only key to this account"));
 }
 
-fn main() {
-    let mut args: Vec<String> = std::env::args().skip(1).collect();
+/// `mudra`'s argv split, before any command dispatches: the `--bostrom`
+/// prefix flag (stripped wherever it appears, first match wins), the
+/// subcommand name, and its remaining words rejoined into one mnemonic
+/// string.
+struct ParsedArgs {
+    bostrom: bool,
+    cmd: String,
+    rest: String,
+}
 
-    // --bostrom flag toggles the address prefix; strip it wherever it appears.
-    let hrp = if let Some(i) = args.iter().position(|a| a == "--bostrom") {
+/// Pure argv parser behind [`main`]'s dispatch, split out so the split
+/// itself is testable without a real process argv.
+fn parse_cli_args(args: &[String]) -> ParsedArgs {
+    let mut args = args.to_vec();
+    let bostrom = if let Some(i) = args.iter().position(|a| a == "--bostrom") {
         args.remove(i);
-        cosmos::BOSTROM
+        true
     } else {
-        cosmos::PUSSY
+        false
     };
-
     let cmd = args.first().cloned().unwrap_or_default();
     let rest = args.get(1..).unwrap_or(&[]).join(" ");
+    ParsedArgs { bostrom, cmd, rest }
+}
+
+fn main() {
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    let ParsedArgs { bostrom, cmd, rest } = parse_cli_args(&args);
+    let hrp = if bostrom { cosmos::BOSTROM } else { cosmos::PUSSY };
 
     match cmd.as_str() {
         "" | "help" | "-h" | "--help" => {
@@ -205,5 +221,82 @@ fn main() {
             cmd_verify(&rest, hrp);
         }
         other => die(format!("unknown command: {other}  (try: mudra help)")),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn v(items: &[&str]) -> Vec<String> {
+        items.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn hex_encodes_empty_as_empty() {
+        assert_eq!(hex(&[]), "");
+    }
+
+    #[test]
+    fn hex_encodes_known_bytes_lowercase_padded() {
+        assert_eq!(hex(&[0x00, 0x0f, 0xff, 0xa0]), "000fffa0");
+    }
+
+    #[test]
+    fn parse_cli_args_no_flag_no_command() {
+        let p = parse_cli_args(&[]);
+        assert!(!p.bostrom);
+        assert_eq!(p.cmd, "");
+        assert_eq!(p.rest, "");
+    }
+
+    #[test]
+    fn parse_cli_args_command_with_multi_word_mnemonic() {
+        let p = parse_cli_args(&v(&["derive", "word1", "word2", "word3"]));
+        assert!(!p.bostrom);
+        assert_eq!(p.cmd, "derive");
+        assert_eq!(p.rest, "word1 word2 word3");
+    }
+
+    #[test]
+    fn parse_cli_args_bostrom_flag_leading_is_stripped() {
+        let p = parse_cli_args(&v(&["--bostrom", "derive", "word1"]));
+        assert!(p.bostrom);
+        assert_eq!(p.cmd, "derive");
+        assert_eq!(p.rest, "word1");
+    }
+
+    #[test]
+    fn parse_cli_args_bostrom_flag_trailing_is_stripped() {
+        let p = parse_cli_args(&v(&["derive", "word1", "--bostrom"]));
+        assert!(p.bostrom);
+        assert_eq!(p.cmd, "derive");
+        assert_eq!(p.rest, "word1");
+    }
+
+    #[test]
+    fn parse_cli_args_bostrom_flag_mid_command_is_stripped() {
+        let p = parse_cli_args(&v(&["derive", "--bostrom", "word1", "word2"]));
+        assert!(p.bostrom);
+        assert_eq!(p.cmd, "derive");
+        assert_eq!(p.rest, "word1 word2");
+    }
+
+    #[test]
+    fn parse_cli_args_only_first_bostrom_occurrence_is_removed() {
+        // Documents current behavior: a second literal "--bostrom" is not a
+        // flag occurrence, it becomes ordinary command/mnemonic text.
+        let p = parse_cli_args(&v(&["--bostrom", "--bostrom", "word1"]));
+        assert!(p.bostrom);
+        assert_eq!(p.cmd, "--bostrom");
+        assert_eq!(p.rest, "word1");
+    }
+
+    #[test]
+    fn parse_cli_args_no_bostrom_flag_present() {
+        let p = parse_cli_args(&v(&["verify", "claim-line"]));
+        assert!(!p.bostrom);
+        assert_eq!(p.cmd, "verify");
+        assert_eq!(p.rest, "claim-line");
     }
 }
