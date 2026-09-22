@@ -3,6 +3,7 @@
 Observed results and implementation assessments belong here. They do not change
 the accepted protocol specifications.
 
+- [2026-09-22 cyber-nox / zheng pin: clean checkout build gate](nox-pin-build-gate.md)
 - [2026-09-12 specification/research release scope](releases/specs-2026-09-12.md)
 - [2026-09-16 Neuron/Mudra implementation readiness and design gaps](readiness-2026-09-16.md)
 - [Cyber crypto choice and visual assessment](signature-optimality.md)
