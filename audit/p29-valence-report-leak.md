@@ -1,6 +1,6 @@
 # property 29: valence privacy leaks by construction, and closing it collides with truth-scoring's own spec
 
-Status: gap analysis, 2026-09-21. Documentation only, no source changed.
+Status: gap analysis, 2026-09-21, corrected 2026-09-22. Documentation only, no source changed.
 States precisely why the current cyberlink/signal path does not satisfy
 launch property 29 (valence privacy), and surfaces an architectural
 tension the registry entry does not mention: [[tru]]'s truth-scoring spec
@@ -8,11 +8,18 @@ assumes the same field property 29 asks to hide is public.
 
 ## the requirement
 
-Launch's phase-1 privacy core lists valence privacy under P2/valence (core
-6, `cyber/launch.md` §6): balances and transfers are private by mudra
-stealth addresses and veil. Property 29 in the registry reads "valence
-privacy hides individual positions and reports; only aggregates public,"
-owned by mudra and zheng, evidence "same proof profile as P1."
+`cyber/launch.md` places valence privacy in core 4, the truth market:
+"[[valence]] privacy the third leg that removes the coordination channel"
+(core 6's P2 covers balances and transfers, not valence). Property 29 in
+the registry reads "valence privacy hides individual positions and
+reports; only aggregates public," owned by mudra and zheng, evidence "same
+proof profile as P1." [[tru]]'s strong-truthfulness spec states the same
+target in its mechanism table: "only aggregates public; individual
+positions and reports hidden" (`tru/specs/strong-truthfulness.md:23`,
+`tru@39e0cafc`). The 2026-09-22 decision on `launch.md` ("the wire and
+ticket leaks (rows 10, 12, 29) are about the private side, not the edges")
+puts a link's valence on the private side: the edge is public, the report
+on it is not.
 
 ## what exists instead
 
@@ -30,13 +37,16 @@ height(u64)." Valence is not incidentally exposed alongside other link
 data; it is a named, typed, plaintext byte on the wire, visible to every
 relaying node, not only to the link's participants.
 
-This is the same leak property 10's audit
-(`audit/p1-signal-content-leak.md` in `zheng`, launch #10) found for the
-general link vector $\vec\ell$ — valence is one coordinate of that same
-vector, so "same proof profile as P1" in the registry evidence is correct:
-whatever hiding construction closes property 10 for $\vec\ell$ as a whole
-closes this coordinate of it too. It does not need an independent
-construction.
+This is the same wire property 10's audits examine
+(`audit/p1-signal-content-leak.md` on zheng's unmerged `launch/10-p1-signal-content-leak`
+branch, zheng#21; `audit/p1-signal-content-commitment-gap.md` here,
+mudra#3). Under the P1 wording corrected on 2026-09-22 (edge public,
+author private) the plaintext edge itself is by design; valence is the
+report riding on the edge, on the private side, so it needs the same
+hiding construction P1 needs for the author and position fields — a
+proof of validity over a hidden witness, zheng private execution. "Same
+proof profile as P1" in the registry evidence is correct; valence needs no
+independent primitive.
 
 ## a second problem the registry entry does not name
 
