@@ -77,7 +77,7 @@ fn to_hex(bytes: &[u8]) -> String {
 }
 
 fn from_hex(s: &str) -> Option<Vec<u8>> {
-    if s.len() % 2 != 0 {
+    if !s.is_ascii() || s.len() % 2 != 0 {
         return None;
     }
     (0..s.len()).step_by(2).map(|i| u8::from_str_radix(&s[i..i + 2], 16).ok()).collect()
@@ -227,6 +227,14 @@ mod tests {
     fn decode_rejects_malformed() {
         assert!(Claim::decode("not enough fields").is_none());
         assert!(Claim::decode("addr zz zz zz").is_none());
+    }
+
+    #[test]
+    fn decode_rejects_non_ascii_without_panicking() {
+        // a multi-byte UTF-8 char keeps the byte length even (so the odd-length
+        // guard does not catch it) while landing a `&s[i..i+2]` slice boundary
+        // mid-character; `from_hex` must reject this, not panic.
+        assert!(Claim::decode("addr aéb 00 00").is_none());
     }
 
     #[test]
