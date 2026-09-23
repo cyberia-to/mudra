@@ -58,6 +58,9 @@ impl Point {
         let mut xb = [0u8; 32];
         xb.copy_from_slice(&bytes[1..33]);
         let x = Fe::from_bytes(&xb);
+        if x.to_bytes() != xb {
+            return None; // non-canonical x encoding (x ≥ q folds to the same point)
+        }
         // y² = x³ + 7  (secp256k1: a = 0, b = 7)
         let mut seven_b = [0u8; 32];
         seven_b[31] = 7;
@@ -269,5 +272,69 @@ mod tests {
 
     fn hex(b: &[u8]) -> String {
         b.iter().map(|x| format!("{x:02x}")).collect()
+    }
+
+    fn q_big() -> BigUint {
+        BigUint::from(2u32).pow(256) - BigUint::from(2u32).pow(32) - BigUint::from(977u32)
+    }
+
+    fn be32(x: &BigUint) -> [u8; 32] {
+        let b = x.to_bytes_be();
+        let mut out = [0u8; 32];
+        out[32 - b.len()..].copy_from_slice(&b);
+        out
+    }
+
+    /// A small `k` such that `k` is a valid curve x-coordinate (`k³ + 7` is a
+    /// quadratic residue), so both `k` and its non-canonical twin `q + k`
+    /// (same 32-byte width, same reduced field value) decompress a point.
+    fn small_valid_x() -> u64 {
+        let mut seven_b = [0u8; 32];
+        seven_b[31] = 7;
+        for k in 0u64.. {
+            let xb = be32(&BigUint::from(k));
+            let x = Fe::from_bytes(&xb);
+            let rhs = x.sqr().mul(&x).add(&Fe::from_bytes(&seven_b));
+            if rhs.sqrt().is_some() {
+                return k;
+            }
+        }
+        unreachable!()
+    }
+
+    #[test]
+    fn rejects_non_canonical_x_encoding() {
+        let k = small_valid_x();
+        let canonical = be32(&BigUint::from(k));
+        let non_canonical = be32(&(q_big() + k)); // same field value as k, raw ≥ q
+        assert_ne!(canonical, non_canonical, "the two encodings must differ at the byte level");
+
+        // both encodings reduce to the same Fe, so the same tag decompresses
+        // the same (x, y) — find that tag, then confirm the canonical form
+        // is accepted and the non-canonical twin is rejected.
+        let mut accepted_tag = None;
+        for tag in [0x02u8, 0x03u8] {
+            let mut pk = [0u8; 33];
+            pk[0] = tag;
+            pk[1..].copy_from_slice(&canonical);
+            if Point::from_sec1(&pk).is_some() {
+                accepted_tag = Some(tag);
+                break;
+            }
+        }
+        let tag = accepted_tag.expect("one parity must decompress a valid point");
+
+        let mut canonical_pk = [0u8; 33];
+        canonical_pk[0] = tag;
+        canonical_pk[1..].copy_from_slice(&canonical);
+        assert!(Point::from_sec1(&canonical_pk).is_some(), "canonical x must be accepted");
+
+        let mut non_canonical_pk = [0u8; 33];
+        non_canonical_pk[0] = tag;
+        non_canonical_pk[1..].copy_from_slice(&non_canonical);
+        assert!(
+            Point::from_sec1(&non_canonical_pk).is_none(),
+            "x ≥ q must be rejected, not silently reduced to the same point"
+        );
     }
 }
