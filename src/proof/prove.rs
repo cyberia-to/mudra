@@ -31,13 +31,16 @@ const ADD: u64 = 5;
 const MUL: u64 = 7;
 
 /// A statement that binds nothing but the trace's own validity. I/O binding is
-/// added by setting `input_hash`/`output_hash`/`focus_bound`.
+/// added by setting `input_hash`/`output_hash`/`focus_bound`. `run_madd`'s
+/// program has no pattern-17 look rows, so `bbg_root` is the documented
+/// "no state read" sentinel.
 fn open_statement() -> Statement {
     Statement {
         program_hash: [0u8; 32],
         input_hash: [0u8; 32],
         output_hash: [0u8; 32],
         focus_bound: 0,
+        bbg_root: [0u8; 32],
     }
 }
 
