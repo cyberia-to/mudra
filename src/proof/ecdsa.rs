@@ -29,8 +29,11 @@ use super::scalar::Scalar;
 pub fn verify(pubkey: &[u8; 33], r: &[u8; 32], s: &[u8; 32], z: &[u8; 32]) -> bool {
     let r_s = Scalar::from_bytes(r);
     let s_s = Scalar::from_bytes(s);
-    // r, s must be in [1, n−1]
-    if r_s.is_zero() || s_s.is_zero() {
+    // r, s must be in [1, n−1], and s must be the low half: (r, s) and
+    // (r, n − s) both satisfy the verification equation below for the same
+    // message, so accepting either half makes the signature's byte encoding
+    // non-unique. Reject the high half so exactly one encoding verifies.
+    if r_s.is_zero() || s_s.is_zero() || s_s.is_high() {
         return false;
     }
     let Some(q) = Point::from_sec1(pubkey) else {
@@ -148,5 +151,37 @@ mod tests {
     fn rejects_zero_scalars() {
         let (pk, _r, s) = sign(&[2u8; 32], &[0x01u8; 32]);
         assert!(!verify(&pk, &[0u8; 32], &s, &[0x01u8; 32]), "r = 0 rejected");
+    }
+
+    /// `(r, s)` and `(r, n − s)` satisfy the same verification equation for
+    /// the same `(pubkey, z)` — flip `w = s⁻¹` to `−w` and both `u1`, `u2`
+    /// negate, so `R = u1·G + u2·Q` negates too, and a negated point has the
+    /// same x-coordinate. Before `is_high` gated it, `verify` accepted
+    /// whichever half a signer (or anyone downstream re-deriving the other
+    /// root) chose to hand it — two distinct byte strings for one signature.
+    /// Only the low-S half must verify now, regardless of which half k256
+    /// happened to produce.
+    #[test]
+    fn accepts_low_s_rejects_high_s_twin() {
+        use num_bigint::BigUint;
+
+        let z = [0x99u8; 32];
+        let (pk, r, s) = sign(&[6u8; 32], &z);
+
+        let n = BigUint::parse_bytes(
+            b"FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141",
+            16,
+        )
+        .unwrap();
+        let s_big = BigUint::from_bytes_be(&s);
+        let twin_big = &n - &s_big;
+        let tb = twin_big.to_bytes_be();
+        let mut twin = [0u8; 32];
+        twin[32 - tb.len()..].copy_from_slice(&tb);
+
+        let (low, high) = if Scalar::from_bytes(&s).is_high() { (twin, s) } else { (s, twin) };
+
+        assert!(verify(&pk, &r, &low, &z), "the low-S half must verify");
+        assert!(!verify(&pk, &r, &high, &z), "the high-S twin must be rejected");
     }
 }
