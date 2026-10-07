@@ -56,7 +56,7 @@ and its association with the output commitment. packet formats and admission
 rules follow [private recovery](private-recovery.md).
 
 the sender also knows this shared secret. exclusive spending authority uses
-an independent secret/policy under [identity](identity.md). a shared-secret
+an independent secret/policy under [proof-based authority](../../neuron/specs/proof-authority.md). a shared-secret
 hash alone cannot establish the recipient's exclusive right to spend.
 
 ## profile qualification

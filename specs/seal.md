@@ -10,6 +10,10 @@ encapsulates a fresh shared secret under an authenticated recipient public key.
 the recipient can be offline. authenticated payload encryption is a separate
 operation using keys derived from that secret.
 
+## status
+
+`src/seal.rs` implements the **standard profile** — ML-KEM-768 (FIPS 203) via the `ml-kem` crate: profile-tagged envelopes (ek 1184 B, dk seed 64 B, ct 1088 B), implicit rejection preserved, shared secret → hemera-derived keys (`SharedSecret::derive(context)`). the native-field construction below is not built.
+
 ## interface
 
 ```text
@@ -75,7 +79,7 @@ requires the same hardware and separately identified operations/profiles.
 
 seal supplies private particle delivery, encrypted operation parameters and
 share delivery for quorum. shared-secret possession is distinct from
-[proof-based authority](identity.md).
+[proof-based authority](../../neuron/specs/proof-authority.md).
 
 arithmetic and hashing follow the selected profile. standard ML-KEM uses its
 standard ring and hashes. a native candidate may use nebu/jali and hemera after

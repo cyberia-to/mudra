@@ -36,7 +36,7 @@ from the earlier [P13 report](../../soft3/audit/neuron-cell/release.md).
 Sources: [Neuron runtime](../../neuron/specs/runtime-v1.md),
 [authority](../../neuron/specs/local-authority.md),
 [dispatch](../../neuron/specs/worker-dispatch.md), [Mudra exports](../src/lib.rs),
-[module contracts](../specs/README.md) and [NSIG1](../specs/neuron-auth.md).
+[module contracts](../specs/README.md) and [NSIG1](../../neuron/specs/local-authority.md).
 Underlying arithmetic/storage libraries do not by themselves implement these
 seven complete Mudra primitives.
 
@@ -70,7 +70,7 @@ qualification of their Hemera dependency.
    atomic admission. Current NSIG1 keys retain their existing IDs; changing that
    key changes the subject. A stable subject with rotatable authority needs its
    own explicit state/creation/recovery profile. The general separation is already
-   in [identity](../specs/identity.md); wire/state rules remain to be instantiated.
+   in [identity](../../neuron/specs/proof-authority.md); wire/state rules remain to be instantiated.
 2. **Concrete crypto profiles.** Pin hash/proof parameters, encodings, key epochs,
    KDF/context, authenticated encryption and the selected CSIDH implementation.
    `seal` may use a fully specified standard profile or a separately qualified
@@ -113,14 +113,14 @@ establish those production custody properties.
   "Pedersen-like" share verification and adds commitments to derive a public key.
   No algebra or proof relation makes those operations executable as written.
   Ordinary Shamir is separable; VSS/DKG/threshold decryption need an actual scheme.
-- [Place](../specs/place.md) incorrectly excludes claiming a larger RTT: an
+- [Place](../../foculus/specs/place.md) incorrectly excludes claiming a larger RTT: an
   endpoint can delay its response. One anchor also does not uniquely orient an
   embedding. These guarantees need a revised adversarial model and construction.
-- [Delay](../specs/delay.md) assumes equivocation requires recomputing the same
+- [Delay](../../foculus/specs/delay.md) assumes equivocation requires recomputing the same
   VDF twice; a proof can be reused for the same input and difficulty. A branch-
   bound challenge and explicit selection rule would need their own argument.
 - `specs/order.md` is absent although the module index advertises it.
-  [neuron-measures](../specs/neuron-measures.md) still equates identity with
+  [neuron-measures](../../neuron/specs/measures.md) still equates identity with
   H(secret), unlike the current subject/authority distinction. The crypto table
   in `CLAUDE.md` retains obsolete NIST/Goldilocks and field-VDF descriptions.
 - Mudra `prove` currently fails to compile because its `Statement` initializer
