@@ -10,6 +10,10 @@ encapsulates a fresh shared secret under an authenticated recipient public key.
 the recipient can be offline. authenticated payload encryption is a separate
 operation using keys derived from that secret.
 
+## status
+
+`src/seal.rs` implements the **standard profile** — ML-KEM-768 (FIPS 203) via the `ml-kem` crate: profile-tagged envelopes (ek 1184 B, dk seed 64 B, ct 1088 B), implicit rejection preserved, shared secret → hemera-derived keys (`SharedSecret::derive(context)`). the native-field construction below is not built.
+
 ## interface
 
 ```text

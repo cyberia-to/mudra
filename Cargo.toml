@@ -1,0 +1,28 @@
+# ---
+# tags: mudra, config
+# crystal-type: source
+# crystal-domain: comp
+# ---
+[package]
+name = "cyber-mudra"
+version = "0.2.0"
+edition = "2024"
+description = "post-quantum confidentiality for neurons: seal (KEM), quorum (threshold), stealth (NIKE, spec), veil (FHE, spec)"
+license-file = "LICENSE"
+
+[lib]
+name = "mudra"
+path = "src/lib.rs"
+
+[dependencies]
+# the field: Shamir shares and Lagrange recovery live in Goldilocks
+nebu = { package = "strata-nebu", version = "0.1", path = "../strata/nebu/rs" }
+# domain-separated key derivation from a sealed shared secret
+hemera = { package = "cyber-hemera", version = "0.3", path = "../hemera/rs" }
+# seal, standard profile: ML-KEM (FIPS 203). the native lattice profile in
+# specs/seal.md is not built; this is the profile a peer can use today.
+ml-kem = "0.3"
+rand_core = "0.10"
+
+[dev-dependencies]
+rand = "0.10"

@@ -540,11 +540,13 @@ all files that have it — it is not decoration.
 
 ## what mudra is
 
-mudra (मुद्रा — seal/gesture) specifies the confidentiality primitives of
-cyber: four modules, four security assumptions, one repo, **no code**. the
-code this repo used to carry (native identity, NSIG1, the legacy-key bridge)
-is the `neuron-auth` crate in `~/cyber/neuron/auth` since 2026-10-07; time
-(`delay`), order and position (`place`) are foculus's. see `README.md`.
+mudra (मुद्रा — seal/gesture) is the confidentiality crate of cyber:
+four modules, four security assumptions, one repo. `seal` (ML-KEM-768
+profile) and `quorum` (Shamir over Goldilocks) are implemented and tested;
+`stealth` and `veil` are specified and wait on the genies / jali algebras.
+the identity code this repo used to carry (native identity, NSIG1, the
+legacy-key bridge) is the `neuron-auth` crate in `~/cyber/neuron/auth` since
+2026-10-07; time (`delay`), order and position (`place`) are foculus's.
 
 every module proves a property: confidentiality (seal, stealth, veil),
 distribution (quorum).
@@ -584,5 +586,6 @@ with each other. security audits are per-module.
 
 ## do not touch zones
 
+- `Cargo.toml` dependency versions — discuss before changing (`ml-kem` is the FIPS 203 profile; swapping it is a profile change)
 - `specs/` — canonical spec, change there first then propagate
 - security assumptions in module docs — require cryptographer review

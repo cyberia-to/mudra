@@ -5,16 +5,16 @@ crystal-domain: crypto
 ---
 # mudra reference
 
-canonical specification for four confidentiality primitives. each module proves a property, each has its own security assumption, they share no cryptographic code. none is implemented yet — the implemented code mudra used to carry (identity, the legacy-key bridge) is now [[neuron]]'s `neuron-auth` crate; time and position moved to [[foculus]] (see the [README](../README.md)).
+canonical specification for four confidentiality primitives. each module proves a property, each has its own security assumption, they share no cryptographic code. `seal` (ML-KEM-768 profile) and `quorum` (Shamir) are implemented in `src/`; `stealth` and `veil` wait on their algebras. the identity code mudra used to carry is now [[neuron]]'s `neuron-auth` crate; time and position moved to [[foculus]] (see the [README](../README.md)).
 
 ## modules
 
 | module | proves | security assumption | spec |
 |--------|--------|-------------------|------|
-| [[seal]] | confidentiality | lattice KEM profile; FIPS 203 for standard ML-KEM | [[seal]] |
+| [[seal]] | confidentiality | lattice KEM profile; FIPS 203 for standard ML-KEM | [[seal]] — `src/seal.rs` (ML-KEM-768) |
 | [[stealth]] | confidentiality | CSIDH (isogeny class group) | [[stealth]] |
 | [[veil]] | confidentiality | LWE | [[veil]] |
-| [[quorum]] | distribution | information-theoretic (SSS) + hash (VSS) | [[quorum]] |
+| [[quorum]] | distribution | information-theoretic (SSS) + hash (VSS) | [[quorum]] — `src/quorum.rs` (Shamir; VSS open) |
 
 ## composition contracts
 

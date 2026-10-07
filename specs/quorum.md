@@ -7,6 +7,10 @@ crystal-domain: crypto
 
 split a secret into k-of-n shares. no single party holds the full secret. k parties must cooperate to act. information-theoretic security (Shamir) plus hash-based verification (VSS via hemera). native Goldilocks field arithmetic.
 
+## status
+
+`src/quorum.rs` implements Shamir secret sharing over Goldilocks — `split(secret, k, n, rng)`, `recover(shares, k)`; any k of n recover, duplicate and zero indices refused. verifiable sharing, DKG and threshold decryption are not built: the VSS below hashes coefficients and then asks for homomorphic share checks a hash cannot give (audit 2026-09-16); it needs a commitment with the right algebra first.
+
 ## interface
 
 ```

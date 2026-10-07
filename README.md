@@ -6,7 +6,16 @@ post-quantum confidentiality for [[neurons]]. mudra (मुद्रा — seal
 
 ## what lives here, and what left
 
-mudra is specification only. the four module contracts in [specs](specs/README.md) — [[mudra/specs/seal|seal]] (KEM), [[mudra/specs/stealth|stealth]] (NIKE), [[mudra/specs/veil|veil]] (FHE), [[mudra/specs/quorum|quorum]] (threshold) — are written and not yet implemented; [private recovery](specs/private-recovery.md) composes them with BBG / inf / zheng so a wallet recovers without disclosing its records.
+crate `cyber-mudra` (lib `mudra`) — four modules, four assumptions, no shared crypto code:
+
+| module | contract | status |
+|---|---|---|
+| `seal` | [[mudra/specs/seal|seal]] (KEM) | **implemented** — standard profile ML-KEM-768 (FIPS 203) over the `ml-kem` crate; profile-tagged envelopes, implicit rejection preserved, hemera-derived keys. native lattice profile: spec |
+| `quorum` | [[mudra/specs/quorum|quorum]] (threshold) | **implemented** — Shamir over Goldilocks, `split` / `recover`, any k of n. VSS / DKG / threshold decryption: spec (the VSS as written is not executable — audit 2026-09-16) |
+| `stealth` | [[mudra/specs/stealth|stealth]] (NIKE) | spec — waits on the genies (isogeny) algebra |
+| `veil` | [[mudra/specs/veil|veil]] (FHE) | spec — waits on the jali (ring) algebra |
+
+[private recovery](specs/private-recovery.md) composes them with BBG / inf / zheng so a wallet recovers without disclosing its records. `cargo test` runs the seal and quorum suites.
 
 on 2026-10-07 the repo was cut to that one responsibility ([[soft3/roadmap/component-boundaries|component boundaries]]):
 
