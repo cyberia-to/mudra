@@ -75,7 +75,7 @@ requires the same hardware and separately identified operations/profiles.
 
 seal supplies private particle delivery, encrypted operation parameters and
 share delivery for quorum. shared-secret possession is distinct from
-[proof-based authority](identity.md).
+[proof-based authority](../../neuron/specs/proof-authority.md).
 
 arithmetic and hashing follow the selected profile. standard ML-KEM uses its
 standard ring and hashes. a native candidate may use nebu/jali and hemera after

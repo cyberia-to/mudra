@@ -5,7 +5,7 @@ crystal-domain: crypto
 ---
 # mudra reference
 
-canonical specification for seven cryptographic primitives. each module proves a property. each module has its own security assumption. they share no cryptographic code with each other.
+canonical specification for four confidentiality primitives. each module proves a property, each has its own security assumption, they share no cryptographic code. none is implemented yet — the implemented code mudra used to carry (identity, the legacy-key bridge) is now [[neuron]]'s `neuron-auth` crate; time and position moved to [[foculus]] (see the [README](../README.md)).
 
 ## modules
 
@@ -15,33 +15,20 @@ canonical specification for seven cryptographic primitives. each module proves a
 | [[stealth]] | confidentiality | CSIDH (isogeny class group) | [[stealth]] |
 | [[veil]] | confidentiality | LWE | [[veil]] |
 | [[quorum]] | distribution | information-theoretic (SSS) + hash (VSS) | [[quorum]] |
-| [[delay]] | delay | sequential computation (isogeny or class group) | [[delay]] |
-| [[order]] | ordering | collision resistance (hemera) | [[order]] |
-| [[place]] | position | speed-of-light bound + geometric consistency | [[place]] |
 
-## authority and recovery contracts
+## composition contracts
 
-[identity](identity.md) binds proof-based authority to exact actions and
-versioned policies. [private recovery](private-recovery.md) defines private
-discovery, authenticated history coverage and recoverable wallet state.
-these are composition contracts for the existing primitives.
-
-private recovery protects values, ownership and selected records against
-an untrusted service. its client-light design candidates live in
-[the recovery-index proposal](props/private-recovery-index.md).
+[private recovery](private-recovery.md) defines private discovery, authenticated history coverage and recoverable wallet state over the four primitives. its client-light design candidates live in [the recovery-index proposal](props/private-recovery-index.md). authority — who may act — is not mudra's: [[neuron/specs/proof-authority|proof-based authority]] and [[neuron/specs/local-authority|local authority]] in neuron.
 
 ## arithmetic profiles
 
 the native design uses three algebras:
 
-- **nebu** (F_p, Goldilocks) — native seal candidate, quorum, order, place
-- **jali** (R_q, polynomial ring) — veil
-- **genies** (F_q, isogeny) — stealth, delay
+- **nebu** ($\mathbb{F}_p$, Goldilocks) — native seal candidate, quorum
+- **jali** ($R_q$, polynomial ring) — veil
+- **genies** ($\mathbb{F}_q$, isogeny) — stealth
 
-shared secrets from genies-based modules enter the selected hemera/KDF profile.
-standard ML-KEM retains its specified modulus, polynomial degree and hashes.
-FHE/PIR profiles likewise declare their own arithmetic; native-field reuse is
-an optimization to qualify, not a compatibility assumption.
+shared secrets from genies-based modules enter the selected hemera/KDF profile. standard ML-KEM retains its specified modulus, polynomial degree and hashes. FHE/PIR profiles likewise declare their own arithmetic; native-field reuse is an optimisation to qualify, not a compatibility assumption.
 
 ## dependency map
 
@@ -54,17 +41,8 @@ mudra
 ├── seal        selected KEM profile; native candidate uses nebu/jali
 ├── stealth     uses genies (group action), hemera (secret hashing)
 ├── veil        uses jali (R_q ciphertexts, bootstrapping), hemera (FHE-friendly hash)
-├── quorum      uses nebu (Lagrange interpolation), hemera (VSS commitments)
-│               uses seal or stealth (encrypted share distribution in DKG)
-├── delay       uses genies (isogeny VDF), hemera (input hashing)
-├── order       uses hemera (hash chain, merkle clock)
-└── place       uses hemera (RTT commitment), delay (challenge timing)
+└── quorum      uses nebu (Lagrange interpolation), hemera (VSS commitments)
+                uses seal or stealth (encrypted share distribution in DKG)
 ```
 
-## internal cross-dependencies
-
-- quorum → seal or stealth (encrypted share delivery in DKG round 2)
-- place → delay (VDF on challenge-response prevents pre-computation)
-- order → delay (VDF time extraction for ordering tiebreak)
-
-all other modules are independent.
+the one internal cross-dependency: quorum → seal or stealth (encrypted share delivery in DKG round 2). [[foculus/specs/delay|delay]] (foculus) may use quorum for DKG of group parameters; that is foculus's dependency on mudra, not the reverse.

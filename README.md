@@ -1,42 +1,30 @@
 # mudra
 
-post-quantum cryptographic primitives for [[neurons]]. mudra (मुद्रा — seal/gesture in Sanskrit) is to [[neurons]] what [[hemera]] is to [[particles]]: hemera gives content its identity and integrity (hashing, commitment, tree proofs); mudra gives agents their confidentiality and privacy (encrypting, exchanging keys, computing privately, distributing keys).
+post-quantum confidentiality for [[neurons]]. mudra (मुद्रा — seal/gesture in Sanskrit) is to a neuron's secrets what [[hemera]] is to a particle's identity: hemera proves what a file is; mudra hides what a neuron holds and shares it with whom the neuron chooses.
 
-[[hemera]] answers: what exists, and how to verify it. mudra answers: who acts, and how to protect them.
+[[hemera]] answers: what exists, and how to verify it. [[neuron]] answers: who acts, and how that is proven. mudra answers: who may read, and how a secret reaches them.
+
+## what lives here, and what left
+
+mudra is specification only. the four module contracts in [specs](specs/README.md) — [[mudra/specs/seal|seal]] (KEM), [[mudra/specs/stealth|stealth]] (NIKE), [[mudra/specs/veil|veil]] (FHE), [[mudra/specs/quorum|quorum]] (threshold) — are written and not yet implemented; [private recovery](specs/private-recovery.md) composes them with BBG / inf / zheng so a wallet recovers without disclosing its records.
+
+on 2026-10-07 the repo was cut to that one responsibility ([[soft3/roadmap/component-boundaries|component boundaries]]):
+
+| moved | to | why |
+|---|---|---|
+| the implemented identity code — `NeuronId = Hemera(pubkey)`, NSIG1 statement authentication, domain-scoped keys, the legacy-key bridge (`cyber-mudra` crate) | [[neuron]] — crate `neuron-auth` | identity is a field of the neuron; its authority code lives with the subject |
+| `identity.md` (proof-based authority), `neuron-auth.md` (NSIG1 envelope), `bridge.md`, `bridge-proof.md`, `neuron-measures.md` | `neuron/specs/` — `proof-authority.md`, `local-authority.md` § NSIG1, `bridge.md`, `bridge-proof.md`, `measures.md` | same |
+| `delay.md` (VDF), `place.md` (position), the `order` module | [[foculus]] — `foculus/specs/delay.md`, `place.md`; ordering is `foculus/src/chain.rs` | time, order and position are reconciliation questions, not confidentiality |
 
 ## why no signatures or VRF
 
-in the native design, [[zheng]] proves authority for an exact action. a neuron
-proves its ownership/policy relation in zero knowledge, with the action,
-network, program and current policy bound into the statement. hashes and the
-proof construction have distinct security requirements. the full contract is
-[identity](specs/identity.md).
-
-verifiable randomness likewise requires a specified relation, uniqueness and
-pseudorandomness argument. proving a hash computation alone does not establish
-every VRF property.
-
-proofs let an application combine programmable authority and state-transition
-rules in one verified statement. the execution protocol separately defines
-metering, fees and any verifiable-randomness relation.
-
-the [[call]] mechanism in [[nox]] binds a neuron's private authority to the
-message and requested action, both on-chain and off-chain. delivery receipts
-require an explicit acknowledgement relation; authorization or correct
-execution alone cannot establish delivery.
+in the native design, [[zheng]] proves authority for an exact action: a neuron proves its ownership/policy relation in zero knowledge with the action, network, program and current policy bound into the statement ([[neuron/specs/proof-authority|proof-based authority]]). verifiable randomness likewise needs a specified relation, uniqueness and a pseudorandomness argument; proving a hash computation alone does not establish every VRF property.
 
 ## the separation
 
 proofs ([[zheng]]) handle: authentication, integrity, randomness, metering.
 mudra handles: confidentiality, key agreement, private computation, key distribution.
 
-these are orthogonal concerns. proofs verify and charge; mudra hides and shares.
+orthogonal concerns. proofs verify and charge; mudra hides and shares.
 
-## modules
-
-the [seven module contracts](specs/README.md) separate authority, encryption,
-agreement and private computation. [private recovery](specs/private-recovery.md)
-composes those primitives with BBG/Inf/Zheng so a wallet can recover without
-disclosing its selected records to the service. the
-[client-light recovery proposal](specs/props/private-recovery-index.md) develops
-neuron-prepared recovery updates/checkpoints and private authenticated indexing.
+[[hemera]] · [[neuron]] · [[foculus]] · [[zheng]] · [[cybergraph]]

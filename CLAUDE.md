@@ -536,15 +536,18 @@ all files that have it — it is not decoration.
 
 ---
 
-# mudra — cryptographic primitives
+# mudra — confidentiality primitives
 
 ## what mudra is
 
-mudra (मुद्रा — seal/gesture) provides cryptographic primitives for
-cyber. seven modules, seven security assumptions, one repo.
+mudra (मुद्रा — seal/gesture) specifies the confidentiality primitives of
+cyber: four modules, four security assumptions, one repo, **no code**. the
+code this repo used to carry (native identity, NSIG1, the legacy-key bridge)
+is the `neuron-auth` crate in `~/cyber/neuron/auth` since 2026-10-07; time
+(`delay`), order and position (`place`) are foculus's. see `README.md`.
 
 every module proves a property: confidentiality (seal, stealth, veil),
-distribution (quorum), delay (delay), ordering (order), position (place).
+distribution (quorum).
 
 ## modules
 
@@ -553,9 +556,6 @@ seal/         encrypt for a recipient (lattice KEM, Module-RLWE, NIST FIPS 203)
 stealth/      agree on a secret without contact (dCTIDH, isogeny-based NIKE)
 veil/         compute without decrypting (TFHE, fully homomorphic encryption)
 quorum/       split a secret into k-of-n shares (Shamir SSS, VSS, DKG)
-delay/        prove that time passed (VDF, sequential computation proof)
-order/        establish event sequence (hash chain + merkle clock + step + tiebreak)
-place/        prove where you are (RTT mesh + classical MDS location proof)
 ```
 
 ## security boundaries
@@ -569,26 +569,20 @@ with each other. security audits are per-module.
 | stealth | CSIDH (isogeny) | genies (F_q, commutative group action) | confidentiality |
 | veil | LWE | Goldilocks polynomials | confidentiality |
 | quorum | information-theoretic (SSS) + hash (VSS) | Goldilocks field | distribution |
-| delay | sequential squaring (inherent sequentiality) | Goldilocks field | delay |
-| order | collision resistance (hemera) | hash chains + DAGs | ordering |
-| place | speed-of-light bound + geometric consistency | RTT matrix + MDS | position |
 
 ## companion repos
 
 | repo | path | role |
 |------|------|------|
-| nebu | `~/git/nebu/` | Goldilocks field arithmetic (F_p) |
-| genies | `~/git/genies/` | isogeny field arithmetic (F_q, commutative group action) |
-| hemera | `~/git/hemera/` | hash function (commitment binding) |
-| lens | `~/git/lens/` | polynomial commitment (5 lenses for 5 algebras) |
-| mudra | `~/git/mudra/` | crypto primitives (this repo) |
-| nox | `~/git/nox/` | VM (execution) |
-| zheng | `~/git/zheng/` | proof system (verification) |
-| bbg | `~/git/bbg/` | authenticated state |
-| cyber | `~/git/cyber/` | knowledge graph (parent subgraph) |
+| strata | `~/cyber/strata/` | nebu (F_p), genies (F_q), jali (R_q) algebras |
+| hemera | `~/cyber/hemera/` | hash function (commitment binding) |
+| neuron | `~/cyber/neuron/` | subject identity and authority (`neuron-auth`) |
+| foculus | `~/cyber/foculus/` | ordering, delay, position |
+| zheng | `~/cyber/zheng/` | proof system (verification) |
+| bbg | `~/cyber/bbg/` | authenticated state |
+| cyber | `~/cyber/cyber/` | knowledge graph (parent subgraph) |
 
 ## do not touch zones
 
-- `Cargo.toml` dependency versions — discuss before changing
 - `specs/` — canonical spec, change there first then propagate
 - security assumptions in module docs — require cryptographer review
