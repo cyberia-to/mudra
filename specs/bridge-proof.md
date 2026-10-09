@@ -62,10 +62,13 @@ construction*. Validated against `k256`, `num-bigint`, `sha2`, `ripemd`, and a
 real Phase-1 claim (in-stack verify agrees with native on 40+ random signatures).
 
 2e closes the proving *mechanism*: `proof::prove` (feature `prove`) builds a nox
-program, runs `nox::reduce` to a `VecTrace`, `zheng::commit`s it, and
-`zheng::verify`s the proof — demonstrated on the Goldilocks `a·b + c` that every
-limb decomposes into, with a soundness check (understated `focus_bound`
-rejected). **What remains:** emitting the *full* `verify_claim` as one nox
+program, runs `nox::reduce` natively, certifies the same program with zheng
+public profile v3 (`certify_execution`) and checks it with
+`verify_certificate` — demonstrated on the Goldilocks `a·b + c` that every limb
+decomposes into, with soundness checks (a false output, an understated budget
+or cost rejected). Profile v3 discloses the witness and is linear in size; the
+earlier `zheng::commit`/`verify` trace fold bound no statement and proved
+nothing (zheng specs/soundness.md, retired). **What remains:** emitting the *full* `verify_claim` as one nox
 program is an arithmetization effort — the same proven operations at scale
 (~10⁷ rows), a compiler/tracing task, not a new capability.
 
