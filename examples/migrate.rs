@@ -3,18 +3,18 @@
 // crystal-type: source
 // crystal-domain: comp
 // ---
-//! End-to-end spacepussy migration bridge: a mnemonic → its real `pussy1…`
+//! End-to-end spacepussy migration bridge: a spell → its real `pussy1…`
 //! account → a native neuron → a signed, verified claim binding the two.
 //!
 //!   cargo run --example migrate
 
 fn main() {
     // A holder's wallet phrase (canonical BIP-39 test vector — never use for value).
-    let mnemonic =
+    let spell =
         "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
 
-    // 1. seed → the exact secp256k1 key that controls their spacepussy account
-    let key = mudra::seed::cosmos_key(mnemonic, "").expect("derive key");
+    // 1. spell → the exact secp256k1 key that controls their spacepussy account
+    let key = mudra::spell::cosmos_key(spell, "").expect("derive key");
     let pubkey = mudra::cosmos::compressed(key.verifying_key());
     let address = mudra::cosmos::address(&pubkey, mudra::cosmos::PUSSY).expect("address");
 

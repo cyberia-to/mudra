@@ -46,7 +46,7 @@ the concrete construction still must resolve:
   one another;
 - completeness of incoming and spent-state updates through the checkpoint's
   declared root, plus privately discoverable, durable updates after that root;
-- seed-derived checkpoint discovery, freshness and retained spend data.
+- spell-derived checkpoint discovery, freshness and retained spend data.
 
 an owner checkpoint covers processed history. if the owning neuron is offline,
 later receipts remain durable pending updates; the snapshot cannot certify a
@@ -75,7 +75,7 @@ of O(1) whole-wallet recovery. hiding activity volume requires fixed quotas or
 an explicit permitted capacity class. zero-match wallets use the same observable
 schedule and response shape as others in that class.
 
-seed restore has two different latency paths. with a prepared state, retrieve
+spell restore has two different latency paths. with a prepared state, retrieve
 and verify it plus a bounded tail. without preparation, a service first builds
 the state from retained history or a qualified pre-existing private index.
 that server delay is part of the unprepared restore benchmark.
@@ -168,7 +168,7 @@ coverage. a checkpoint without that base case cannot certify a balance.
 
 ### 4. retrieve a summary first, spend data on demand
 
-derive recovery lookup material from the seed/profile, retrieve the current
+derive recovery lookup material from the spell/profile, retrieve the current
 encrypted checkpoint privately and validate its canonical freshness/coverage.
 show a verified balance summary before downloading the full historical wallet.
 privately request the bounded note set needed for a spend, with a proof that
@@ -187,7 +187,7 @@ an encrypted root without available leaves cannot support a payment.
 | streaming OMR / encrypted inbox | precompute while client sleeps | per-recipient update work; some published inboxes evict old messages | compare after durable baseline |
 | oblivious append index + private reads | move discovery to payment admission | private atomic append/counters, unknown senders, write abuse, access-pattern privacy | core design question |
 | private balance summary + lazy spend data | avoid downloading all U notes just to open | complete encrypted state and private coin-selection service | compose with private index |
-| direct sender-to-recipient channel | cheap delivery for known peers | offline first contact, availability and seed recovery still need an archive | optional accelerator |
+| direct sender-to-recipient channel | cheap delivery for known peers | offline first contact, availability and spell recovery still need an archive | optional accelerator |
 
 TEE-only, plaintext-view-key and noncolluding-server constructions have different
 trust models. they are useful research comparisons, not silent replacements

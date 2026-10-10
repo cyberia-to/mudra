@@ -5,16 +5,18 @@
 // ---
 //! Known-answer vectors for the legacy-key bridge, cross-checked against an
 //! independent pure-Python BIP-32 secp256k1 derivation + BIP-173 bech32. If
-//! these break, the seed→key→address pipeline diverged from real Cosmos.
+//! these break, the spell→key→address pipeline diverged from real Cosmos.
+
+#![cfg(feature = "bridge")]
 
 #[cfg(feature = "prove")]
 use mudra::proof::ecdsa;
-use mudra::{claim, cosmos, seed};
+use mudra::{claim, cosmos, spell};
 #[cfg(feature = "prove")]
 use sha2::{Digest, Sha256};
 
 /// Canonical all-`abandon` BIP-39 phrase. Public test key — never holds value.
-const MNEMONIC: &str =
+const SPELL: &str =
     "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
 
 // Independently verified (pure-Python secp256k1 BIP-32, no shared crates):
@@ -26,8 +28,8 @@ fn hex(b: &[u8]) -> String {
 }
 
 #[test]
-fn abandon_mnemonic_derives_the_verified_pussy_account() {
-    let key = seed::cosmos_key(MNEMONIC, "").unwrap();
+fn abandon_spell_derives_the_verified_pussy_account() {
+    let key = spell::cosmos_key(SPELL, "").unwrap();
     let pubkey = cosmos::compressed(key.verifying_key());
     assert_eq!(hex(&pubkey), PUBKEY, "HD-derived pubkey matches independent derivation");
     assert_eq!(cosmos::address(&pubkey, cosmos::PUSSY).unwrap(), PUSSY_ADDR);
@@ -35,8 +37,8 @@ fn abandon_mnemonic_derives_the_verified_pussy_account() {
 
 #[test]
 fn full_bridge_round_trips() {
-    // mnemonic → real account → native neuron → signed claim → verified
-    let key = seed::cosmos_key(MNEMONIC, "").unwrap();
+    // spell → real account → native neuron → signed claim → verified
+    let key = spell::cosmos_key(SPELL, "").unwrap();
     let pubkey = cosmos::compressed(key.verifying_key());
     let neuron = claim::neuron_of(&pubkey);
     let c = claim::create(&key, cosmos::PUSSY, neuron).unwrap();
@@ -50,7 +52,7 @@ fn in_stack_ecdsa_verifies_a_real_claim() {
     // The Phase-2 (Goldilocks-limb) ECDSA verifier must agree with the native
     // Phase-1 claim on a REAL claim. A claim signs ECDSA over sha256(ADR-036 doc),
     // so the digest z the equation checks is exactly that sha256.
-    let key = seed::cosmos_key(MNEMONIC, "").unwrap();
+    let key = spell::cosmos_key(SPELL, "").unwrap();
     let pubkey = cosmos::compressed(key.verifying_key());
     let neuron = claim::neuron_of(&pubkey);
     let c = claim::create(&key, cosmos::PUSSY, neuron).unwrap();
