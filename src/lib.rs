@@ -45,6 +45,16 @@ pub mod proof;
 #[cfg(feature = "bridge")]
 pub mod spell;
 
+/// Pre-spell names, kept so consumers that have not moved to [`spell`] yet
+/// (vault `main`) still build. New code uses [`spell`].
+#[cfg(feature = "bridge")]
+#[doc(hidden)]
+pub mod seed {
+    pub use crate::spell::{
+        COSMOS_PATH, cosmos_key, derive as seed, generate as generate_mnemonic, signing_key,
+    };
+}
+
 pub use claim::Claim;
 
 /// The secp256k1 signing key type used across mudra. Depended on directly

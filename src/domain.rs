@@ -42,7 +42,8 @@ pub fn domain_scalar(entropy: &[u8; 32], domain: &str) -> k256::Scalar {
     input.extend_from_slice(entropy);
     input.push(0x00);
     input.extend_from_slice(domain.as_bytes());
-    let h = hemera::hash(&input);
+    // entropy is secret: constant-time digest (same bits as `hemera::hash`)
+    let h = hemera::hash_secret(&input);
     <k256::Scalar as Reduce<k256::U256>>::reduce(k256::U256::from_be_slice(h.as_bytes()))
 }
 
@@ -109,6 +110,18 @@ mod tests {
         let e = [3u8; 32];
         assert_eq!(domain_scalar(&e, "example.com"), domain_scalar(&e, "example.com"));
         assert_ne!(domain_scalar(&e, "example.com"), domain_scalar(&e, "cyber.page"));
+    }
+
+    /// The constant-time digest changes no key: `hash_secret` = `hash`.
+    #[test]
+    fn domain_scalar_keys_unchanged_by_constant_time_hash() {
+        let e = [0x5au8; 32];
+        let mut input = e.to_vec();
+        input.push(0x00);
+        input.extend_from_slice(b"example.com");
+        let plain = hemera::hash(&input);
+        let want = <k256::Scalar as Reduce<k256::U256>>::reduce(k256::U256::from_be_slice(plain.as_bytes()));
+        assert_eq!(domain_scalar(&e, "example.com"), want);
     }
 
     #[test]
