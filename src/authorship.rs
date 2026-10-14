@@ -385,6 +385,8 @@ pub struct Key {
     program: N,
     encoded: Vec<zheng::execution::NounToken>,
     vk: VerifyingKey,
+    /// The relation compiled once; every proof reuses it.
+    pk: veil::ProvingKey,
     cycles: u64,
 }
 
@@ -399,7 +401,8 @@ impl Key {
             zheng::execution::private::prepare_execution(&program, &[0; 12], &secret_stream(&Secret([0; 4]), &dummy), BUDGET)
                 .map_err(Error::Proof)?;
         let vk = VerifyingKey::for_execution(&st.execution).map_err(Error::Proof)?;
-        Ok(Self { depth, program, encoded, vk, cycles: st.execution.cycles })
+        let pk = veil::ProvingKey::new(&program, 12).map_err(Error::Proof)?;
+        Ok(Self { depth, program, encoded, vk, pk, cycles: st.execution.cycles })
     }
 
     pub fn depth(&self) -> usize {
@@ -468,7 +471,7 @@ pub fn prove(
         nullifier: secret.nullifier(scope),
     };
     statement.check()?;
-    let (st, proof) = veil::prove(&key.program, &statement.inputs(), &secret_stream(secret, path), BUDGET)
+    let (st, proof) = veil::prove_with_key(&key.pk, &key.program, &statement.inputs(), &secret_stream(secret, path), BUDGET)
         .map_err(Error::Proof)?;
     if st != key.zheng_statement(&statement) {
         return Err(Error::Proof("execution disagrees with the native statement".into()));
