@@ -22,7 +22,10 @@ canonical specification for seven cryptographic primitives. each module proves a
 ## authority and recovery contracts
 
 [identity](identity.md) binds proof-based authority to exact actions and
-versioned policies. [private recovery](private-recovery.md) defines private
+versioned policies. [authorship](authorship.md) is its first private
+profile in code: P1, a signal's author proves membership in a committed
+authority set in zero knowledge, bound to the signal's content, with a
+scoped nullifier. [private recovery](private-recovery.md) defines private
 discovery, authenticated history coverage and recoverable wallet state.
 these are composition contracts for the existing primitives.
 
