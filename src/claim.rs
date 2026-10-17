@@ -241,6 +241,16 @@ mod tests {
     }
 
     #[test]
+    fn from_hex_accepts_only_hex_digit_pairs() {
+        // `u8::from_str_radix` takes a leading `+`, so the slicing parser read
+        // "+f" as 0x0f: a second spelling of the same claim bytes on the wire.
+        assert_eq!(from_hex("+f"), None);
+        assert_eq!(from_hex("-1"), None);
+        assert_eq!(from_hex("0F"), Some(vec![0x0f]));
+        assert_eq!(from_hex("00ff"), Some(vec![0x00, 0xff]));
+    }
+
+    #[test]
     fn neuron_of_is_deterministic() {
         let k = key();
         let pk = cosmos::compressed(k.verifying_key());
