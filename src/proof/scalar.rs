@@ -31,6 +31,14 @@ const ORDER_MINUS_2: [u64; N] = [
     0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF,
 ];
 
+/// `n / 2`, rounded down: the low/high-S boundary (BIP-62 / BIP-146 canonical
+/// form). For any valid ECDSA signature `(r, s)`, `(r, n − s)` verifies
+/// identically, so exactly one of the pair lies in `[1, HALF_ORDER]`.
+const HALF_ORDER: [u64; N] = [
+    0x20A0, 0x681B, 0x2F46, 0xDFE9, 0x501D, 0x57A4, 0x6E73, 0x5D57, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF,
+    0xFFFF, 0xFFFF, 0xFFFF, 0x7FFF,
+];
+
 /// The fold constant `M = 2^256 − n = 0x1_45512319_50B75FC4_402DA173_2FC9BEBF`
 /// (129 bits → 9 limbs). `2^256 ≡ M (mod n)`.
 const M: [u64; 9] = [
@@ -76,6 +84,23 @@ impl Scalar {
     /// Whether this is zero.
     pub fn is_zero(&self) -> bool {
         self.limbs.iter().all(|&l| l == 0)
+    }
+
+    /// Whether this scalar is "high-S": strictly greater than `n / 2`. ECDSA
+    /// verification accepts `(r, s)` and `(r, n − s)` identically, so a
+    /// signer free to pick either half can hand out two distinct, both-valid
+    /// encodings of the same signature — malleable at the wire level even
+    /// though each encoding is itself canonical (unlike the non-canonical
+    /// `s ≥ n` encoding `from_bytes` already folds away). Rejecting the
+    /// high-S half, same as Bitcoin's BIP-62/BIP-146, makes the byte
+    /// encoding of a signature unique for a given `(pubkey, r, z)`.
+    pub fn is_high(&self) -> bool {
+        for i in (0..N).rev() {
+            if self.limbs[i] != HALF_ORDER[i] {
+                return self.limbs[i] > HALF_ORDER[i];
+            }
+        }
+        false
     }
 
     /// Scalar multiplication mod `n`.
@@ -220,6 +245,28 @@ mod tests {
         let mut be = [0u8; 32];
         be[32 - b.len()..].copy_from_slice(&b);
         assert!(Scalar::from_bytes(&be).is_zero(), "n ≡ 0");
+    }
+
+    #[test]
+    fn half_order_constant_is_correct() {
+        // HALF_ORDER == floor(n / 2): 2·HALF_ORDER + 1 == n (n is odd).
+        let half = to_big(&Scalar { limbs: HALF_ORDER });
+        assert_eq!(half.clone() * 2u32 + 1u32, n_big());
+    }
+
+    #[test]
+    fn is_high_splits_s_and_its_negation() {
+        // For any nonzero s, exactly one of {s, n − s} is high (s == n − s
+        // is impossible: n is odd, so 2s == n has no solution).
+        let mut rng = Rng(0x0DDBA11_5CA1AB1E);
+        for _ in 0..2000 {
+            let s = from_big(&(BigUint::from_bytes_be(&rng.bytes32()) % &n_big()));
+            if s.is_zero() {
+                continue;
+            }
+            let neg_s = from_big(&(&n_big() - to_big(&s)));
+            assert_ne!(s.is_high(), neg_s.is_high(), "s={:?}", to_big(&s));
+        }
     }
 
     #[test]

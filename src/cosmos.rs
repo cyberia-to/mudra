@@ -39,7 +39,18 @@ pub fn account_id(compressed_pubkey: &[u8]) -> [u8; 20] {
 }
 
 /// The bech32 address for a compressed pubkey under a chain prefix (HRP).
+///
+/// Rejects anything that is not a 33-byte SEC1-compressed key (wrong length,
+/// or a leading byte other than `0x02`/`0x03`) instead of hashing it anyway:
+/// a truncated or uncompressed key would otherwise silently derive a
+/// well-formed but wrong address, not an error.
 pub fn address(compressed_pubkey: &[u8], hrp: &str) -> Result<String, Error> {
+    if compressed_pubkey.len() != 33 || !matches!(compressed_pubkey[0], 0x02 | 0x03) {
+        return Err(Error::Key(format!(
+            "expected a 33-byte SEC1-compressed pubkey (0x02/0x03 prefix), got {} bytes",
+            compressed_pubkey.len()
+        )));
+    }
     let id = account_id(compressed_pubkey);
     let hrp = bech32::Hrp::parse(hrp).map_err(|e| Error::Bech32(e.to_string()))?;
     bech32::encode::<bech32::Bech32>(hrp, &id).map_err(|e| Error::Bech32(e.to_string()))
@@ -76,5 +87,33 @@ mod tests {
         let (_, pussy_data) = bech32::decode(&address(&pk, PUSSY).unwrap()).unwrap();
         let (_, bostrom_data) = bech32::decode(&address(&pk, BOSTROM).unwrap()).unwrap();
         assert_eq!(pussy_data, bostrom_data, "same account id under both prefixes");
+    }
+
+    #[test]
+    fn rejects_uncompressed_key_instead_of_hashing_it() {
+        // A 65-byte uncompressed SEC1 key (0x04 prefix) is not what this
+        // function's contract promises; it must not silently derive an
+        // address from the wrong bytes.
+        let uncompressed = vec![0x04u8; 65];
+        assert!(matches!(address(&uncompressed, PUSSY), Err(Error::Key(_))));
+    }
+
+    #[test]
+    fn rejects_truncated_key_instead_of_hashing_it() {
+        let pk = hex::decode(DOC_PUBKEY).unwrap();
+        let truncated = &pk[..32];
+        assert!(matches!(address(truncated, PUSSY), Err(Error::Key(_))));
+    }
+
+    #[test]
+    fn rejects_wrong_prefix_byte_instead_of_hashing_it() {
+        let mut pk = hex::decode(DOC_PUBKEY).unwrap();
+        pk[0] = 0x00; // neither 0x02 nor 0x03
+        assert!(matches!(address(&pk, PUSSY), Err(Error::Key(_))));
+    }
+
+    #[test]
+    fn empty_key_is_rejected() {
+        assert!(matches!(address(&[], PUSSY), Err(Error::Key(_))));
     }
 }

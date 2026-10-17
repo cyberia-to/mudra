@@ -76,10 +76,18 @@ fn to_hex(bytes: &[u8]) -> String {
 }
 
 fn from_hex(s: &str) -> Option<Vec<u8>> {
-    if s.len() % 2 != 0 {
+    if s.len() % 2 != 0 || !s.is_ascii() {
         return None;
     }
-    (0..s.len()).step_by(2).map(|i| u8::from_str_radix(&s[i..i + 2], 16).ok()).collect()
+    let bytes = s.as_bytes();
+    (0..bytes.len())
+        .step_by(2)
+        .map(|i| {
+            let hi = (bytes[i] as char).to_digit(16)?;
+            let lo = (bytes[i + 1] as char).to_digit(16)?;
+            Some(((hi as u8) << 4) | lo as u8)
+        })
+        .collect()
 }
 
 /// The canonical native neuron id for a legacy account: `Hemera(pubkey)`.
@@ -221,6 +229,25 @@ mod tests {
     fn decode_rejects_malformed() {
         assert!(Claim::decode("not enough fields").is_none());
         assert!(Claim::decode("addr zz zz zz").is_none());
+    }
+
+    #[test]
+    fn decode_rejects_non_ascii_without_panicking() {
+        // mudra/audit/mudra-identity-readiness.md finding 3: from_hex sliced
+        // arbitrary UTF-8 at fixed byte offsets before checking it was ASCII
+        // hex, so a multi-byte character could split a slice mid-character
+        // and panic instead of returning the documented `None`.
+        assert!(Claim::decode("address 😀 00 00").is_none());
+    }
+
+    #[test]
+    fn from_hex_accepts_only_hex_digit_pairs() {
+        // `u8::from_str_radix` takes a leading `+`, so the slicing parser read
+        // "+f" as 0x0f: a second spelling of the same claim bytes on the wire.
+        assert_eq!(from_hex("+f"), None);
+        assert_eq!(from_hex("-1"), None);
+        assert_eq!(from_hex("0F"), Some(vec![0x0f]));
+        assert_eq!(from_hex("00ff"), Some(vec![0x00, 0xff]));
     }
 
     #[test]
