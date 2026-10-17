@@ -15,4 +15,12 @@ the accepted protocol specifications.
 - [Quantus circuit and chain evidence](quantus-wormhole-evidence.md)
 - [Quantus wallet recovery and query evidence](quantus-wallet-evidence.md)
 - [Quantus / OpenSSL executable cross-verification](quantus-mldsa-crosscheck/README.md)
-- [Property 29: valence privacy leaks by construction, and collides with truth-scoring's public-graph assumption](p29-valence-report-leak.md)
+- [2026-09-21/22 P1 signal privacy: the author is on the wire (launch row 10)](p1-signal-content-commitment-gap.md)
+- [2026-09-21/22 P2 stealth and veil: implementation gap against the tok ledger (launch row 11)](p2-stealth-veil-transfer-gap.md)
+- [2026-09-24 genies exists, not yet constant-time for stealth (launch row 11)](p2-stealth-genies-availability-2026-09-24.md)
+- [2026-09-21/22 Property 29: valence privacy leaks by construction, and collides with truth-scoring's public-graph assumption](p29-valence-report-leak.md)
+
+The four privacy gap traces above are dated observations. The privacy design they
+measured against was replaced on 2026-10-16 by one pool, one proof, one material
+(`soft3/proposals/privacy-frozen.md`), which drops the isogeny `stealth` path and
+retargets P1 authorship onto `SPEND`.
