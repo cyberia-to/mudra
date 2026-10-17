@@ -22,6 +22,12 @@ license-file = "LICENSE"
 # enable with `cargo test --features prove`.
 prove = ["dep:nebu", "dep:nox", "dep:zheng"]
 
+# P1 private authorship (`authorship`, specs/authorship.md): membership in a
+# committed authority set, bound to a signal's content commitment, with a
+# scoped nullifier, proven in zheng's zero-knowledge profile (veil). Pulls
+# nox + zheng like `prove`, without the secp256k1 gadgets.
+authorship = ["dep:nebu", "dep:nox", "dep:zheng"]
+
 # the legacy-key bridge's HD-derivation path (BIP-32/39, Cosmos coin type
 # 118) — `spell.rs`, and `claim`/`cosmos`'s recovery-of-an-existing-account
 # use. on by default (mudra's own CLI/tests need it); off for a downstream
@@ -88,11 +94,17 @@ path = "src/bin/mudra.rs"
 required-features = ["bridge"]
 
 [[example]]
+name = "p1_bench"
+required-features = ["authorship"]
+
+[[example]]
 name = "migrate"
 path = "examples/migrate.rs"
 required-features = ["bridge"]
 
 [dev-dependencies]
+# examples/p1_bench picks the prover backend (ZHENG_BACKEND)
+cyber-lens-gpu = { version = "0.1.0", path = "../lens/gpu", features = ["metal"] }
 serde_json = "1"
 hex = "0.4"
 # independent references for the phase-2 gadget tests only

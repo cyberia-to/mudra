@@ -91,6 +91,11 @@ a public permanent subject identifier links its actions. the private profile
 proves membership and policy satisfaction against a committed authority set
 while keeping the member, ownership opening and private values hidden.
 
+the signal-authorship instance of this profile (P1: edge public, author
+private) is specified in [authorship](authorship.md): membership against a
+committed authority set root, bound to the signal's content commitment,
+with a scoped nullifier, proven in zheng's veil profile.
+
 nullifiers bind their intended scope and prevent replay without exposing the
 authority commitment or discovery key. private output values and individual
 contributions remain private witnesses. plaintext per-action weights cannot
