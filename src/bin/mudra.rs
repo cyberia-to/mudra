@@ -162,7 +162,7 @@ fn cmd_new(hrp: &str) {
 
 /// `mudra`'s argv split, before any command dispatches: the `--bostrom`
 /// prefix flag (stripped wherever it appears, first match wins), the
-/// subcommand name, and its remaining words rejoined into one mnemonic
+/// subcommand name, and its remaining words rejoined into one spell
 /// string.
 struct ParsedArgs {
     bostrom: bool,
@@ -251,7 +251,7 @@ mod tests {
     }
 
     #[test]
-    fn parse_cli_args_command_with_multi_word_mnemonic() {
+    fn parse_cli_args_command_with_multi_word_spell() {
         let p = parse_cli_args(&v(&["derive", "word1", "word2", "word3"]));
         assert!(!p.bostrom);
         assert_eq!(p.cmd, "derive");
@@ -285,7 +285,7 @@ mod tests {
     #[test]
     fn parse_cli_args_only_first_bostrom_occurrence_is_removed() {
         // Documents current behavior: a second literal "--bostrom" is not a
-        // flag occurrence, it becomes ordinary command/mnemonic text.
+        // flag occurrence, it becomes ordinary command/spell text.
         let p = parse_cli_args(&v(&["--bostrom", "--bostrom", "word1"]));
         assert!(p.bostrom);
         assert_eq!(p.cmd, "--bostrom");
