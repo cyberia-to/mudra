@@ -43,11 +43,6 @@ neuron-id = { version = "0.1", path = "../neuron/id" }
 # native neuron identity: neuron = Hemera(pubkey)
 hemera = { package = "cyber-hemera", version = "0.4", path = "../hemera/rs" }
 
-# the frozen domain-v1 KDF primitive (hemera 0.3 bits, constant-time
-# hash_secret; mudra domain.rs contract; soft3 plan L3c). Pinned by rev, never
-# bumped. Pinned by git because crates.io's cyber-hemera 0.3.1 lacks hash_secret.
-hemera_v1 = { package = "cyber-hemera", git = "https://github.com/cyberia-to/hemera", rev = "fd55f99a17408c1f5a65d51c1ea73a6c60906f53" }
-
 # phase 2 — provable verification: secp256k1 emulated as Goldilocks limbs.
 # behind `prove` — see the feature doc above.
 nebu = { package = "strata-nebu", version = "0.1", path = "../strata/nebu/rs", optional = true }

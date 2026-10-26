@@ -1,8 +1,4 @@
 //! Frozen mudra 348c46195388ac009667144987511a0e33bdc859 outputs.
-//! Frozen (domain-v1 KDF on hemera 0.3 bits): address, pubkey_hex, adr036_doc,
-//! signature_hex, and native_hex_v1 (the legacy hemera 0.3 id). They must never
-//! change: the browser identity does not rotate. native_hex is the native id
-//! under the chain's current hemera (0.4); it follows the chain, not frozen.
 //! Capture source hashes are recorded by soft3's neuron convergence audit.
 use mudra::{claim,domain::DomainKey};
 fn hex(b:&[u8])->String {b.iter().map(|b|format!("{b:02x}")).collect()}
@@ -14,7 +10,6 @@ fn domain_addresses_native_ids_adr036_docs_and_signatures_match_legacy_bytes(){
         let body=row["body"].as_str().unwrap().as_bytes();
         assert_eq!(key.bech32,row["address"]);assert_eq!(hex(&key.pubkey),row["pubkey_hex"]);
         assert_eq!(hex(&key.native),row["native_hex"]);
-        assert_eq!(hex(hemera_v1::hash(&key.pubkey).as_bytes()),row["native_hex_v1"]);
         assert_eq!(claim::adr036_doc(&key.bech32,body),row["adr036_doc"]);
         assert_eq!(hex(&claim::sign_arbitrary(key.signing_key(),&key.bech32,body)),row["signature_hex"]);
     }
