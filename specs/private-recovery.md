@@ -162,4 +162,4 @@ end-to-end recovery and spend-ready latency with hardware, network conditions,
 server work/storage and proof construction included.
 
 candidate client-light architectures are tracked in
-[the recovery-index proposal](props/private-recovery-index.md).
+[the recovery-index project](projects/private-recovery-index.md).
