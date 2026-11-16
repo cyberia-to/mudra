@@ -22,5 +22,5 @@ the accepted protocol specifications.
 
 The four privacy gap traces above are dated observations. The privacy design they
 measured against was replaced on 2026-10-16 by one pool, one proof, one material
-(`soft3/proposals/privacy-frozen.md`), which drops the isogeny `stealth` path and
+(`soft3/projects/privacy-frozen.md`), which drops the isogeny `stealth` path and
 retargets P1 authorship onto `SPEND`.
