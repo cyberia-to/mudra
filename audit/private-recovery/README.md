@@ -3,7 +3,7 @@
 2026-09-12. Research and design revision; published measurements were not
 reproduced locally. Canonical requirements are in
 [private recovery](../../specs/private-recovery.md); the candidate architecture
-is [private recovery index](../../specs/props/private-recovery-index.md).
+is [private recovery index](../../projects/private-recovery-index.md).
 
 ## The useful change
 

@@ -80,7 +80,7 @@ qualification of their Hemera dependency.
 3. **Receiving while offline.** Define recoverable note bytes and openings,
    hidden index routing, atomic concurrent appends, retained pending receipts,
    checkpoint coverage/freshness, seed discovery and private spent-state reads.
-   The [neuron-prepared proposal](../specs/props/private-recovery-index.md)
+   The [neuron-prepared proposal](../projects/private-recovery-index.md)
    identifies this work correctly. An owner checkpoint covers processed history;
    it cannot account for later receipts until the tail is processed.
 4. **Public disclosure.** Define which values/aggregates, query sizes, timing and

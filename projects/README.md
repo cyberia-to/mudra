@@ -1,13 +1,13 @@
 ---
-tags: mudra, proposal
+tags: mudra, project
 crystal-type: entity
 crystal-domain: crypto
 ---
-# design proposals
+# design projects
 
-draft proposals define candidate constructions and experiments. accepted
+draft projects define candidate constructions and experiments. accepted
 requirements live in the canonical module and composition contracts.
 
-| proposal | status | question |
+| project | status | question |
 |---|---|---|
 | [private recovery index](private-recovery-index.md) | draft | neuron-prepared updates/checkpoints and private indexing with exceptionally little recovery work |

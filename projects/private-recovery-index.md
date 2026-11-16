@@ -1,5 +1,5 @@
 ---
-tags: mudra, privacy, recovery, proposal
+tags: mudra, privacy, recovery, project
 crystal-type: spec
 crystal-domain: crypto
 status: draft
@@ -18,7 +18,7 @@ the priority is **neuron-prepared recovery updates and encrypted checkpoints,
 served through a private, authenticated index**. prepare data and proofs where
 the transaction witness is already available. compact OMR and server-side FHE
 state maintenance remain research comparisons.
-this is a composition proposal. its implementation, full security argument and
+this is a composition project. its implementation, full security argument and
 end-to-end performance remain to be established.
 
 ## priority: prepare recovery at the neuron
@@ -221,7 +221,7 @@ outline uses out-of-band secret delivery and exposes nullifiers to the syncing
 service; recovery and correlation need further protocol work. borrow the
 separation of state maintenance from client wake-up, with Cyber's own privacy
 and post-quantum requirements.
-[Primary proposal](https://seanbowe.com/blog/tachyon-scaling-zcash-oblivious-synchronization/).
+[Primary project](https://seanbowe.com/blog/tachyon-scaling-zcash-oblivious-synchronization/).
 
 full candidate evidence and caveats are in the
 [recovery research](../../audit/private-recovery/README.md).

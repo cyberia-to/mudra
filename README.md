@@ -38,5 +38,5 @@ the [seven module contracts](specs/README.md) separate authority, encryption,
 agreement and private computation. [private recovery](specs/private-recovery.md)
 composes those primitives with BBG/Inf/Zheng so a wallet can recover without
 disclosing its selected records to the service. the
-[client-light recovery proposal](specs/props/private-recovery-index.md) develops
+[client-light recovery project](projects/private-recovery-index.md) develops
 neuron-prepared recovery updates/checkpoints and private authenticated indexing.

@@ -28,7 +28,7 @@ these are composition contracts for the existing primitives.
 
 private recovery protects values, ownership and selected records against
 an untrusted service. its client-light design candidates live in
-[the recovery-index proposal](props/private-recovery-index.md).
+[the recovery-index project](projects/private-recovery-index.md).
 
 ## arithmetic profiles
 
