@@ -3,7 +3,7 @@
 // crystal-type: source
 // crystal-domain: comp
 // ---
-//! P1 private authorship: the edge is public, the author is private.
+//! P1 private authorship: the cyberlink is public, the author is private.
 //!
 //! Normative: `specs/authorship.md`. A signal's author proves, in zheng's
 //! zero-knowledge profile (veil, envelope profile 2), that it holds the
@@ -103,7 +103,7 @@ fn digest_noun(d: &Digest) -> nox::Digest {
 fn limbs(d: &nox::Digest) -> Digest {
     let rate = d.map(|v| hemera::field::Goldilocks::new(v.as_u64()));
     // a four-element rate is one absorb step: `last` is always present
-    let state = hemera::StepSponge::absorb(&rate).last().unwrap_or([hemera::field::Goldilocks::new(0); 16]);
+    let state = hemera::StepSponge::absorb(&rate).last().expect("a four-element rate is one absorb step");
     core::array::from_fn(|i| state[i].as_canonical_u64())
 }
 
@@ -122,12 +122,18 @@ impl core::fmt::Debug for Secret {
     }
 }
 
+/// Overwrite a buffer that held secret limbs. Volatile, so the write
+/// survives optimization.
+fn wipe(buf: &mut [u64]) {
+    for limb in buf.iter_mut() {
+        // SAFETY: a valid, aligned, exclusively borrowed u64.
+        unsafe { core::ptr::write_volatile(limb, 0) };
+    }
+}
+
 impl Drop for Secret {
     fn drop(&mut self) {
-        for limb in self.0.iter_mut() {
-            // SAFETY: a valid, aligned, exclusively borrowed u64.
-            unsafe { core::ptr::write_volatile(limb, 0) };
-        }
+        wipe(&mut self.0);
     }
 }
 
@@ -147,7 +153,9 @@ impl Secret {
         }))
     }
 
-    /// The limbs, for a caller that stores the secret itself.
+    /// The limbs, for a caller that stores the secret itself. The copy
+    /// the caller takes is its own to wipe; this type's zeroization
+    /// covers only its own buffer.
     pub fn limbs(&self) -> &[u64; 4] {
         &self.0
     }
@@ -335,8 +343,12 @@ pub fn program(depth: usize) -> Result<N, Error> {
 /// right in every cons): `s`, then per level from the leaf up the
 /// sibling's four limbs and the direction — level 0 is the path list's
 /// head, the outermost cons.
+///
+/// The buffer is allocated at its final length, so no reallocation
+/// leaves a copy of the secret behind the caller's [`wipe`].
 fn secret_stream(secret: &Secret, path: &Path) -> Vec<u64> {
-    let mut out = secret.0.to_vec();
+    let mut out = Vec::with_capacity(secret.0.len() + 5 * path.siblings.len());
+    out.extend_from_slice(&secret.0);
     for (sib, &b) in path.siblings.iter().zip(&path.directions) {
         out.extend_from_slice(sib);
         out.push(b);
@@ -398,10 +410,10 @@ impl Key {
         // depend on secrets (branches pick between two conses of equal cost)
         let dummy = Path { siblings: vec![EMPTY; depth], directions: vec![0; depth] };
         let (st, _, _) =
-            zheng::execution::private::prepare_execution(&program, &[0; 12], &secret_stream(&Secret([0; 4]), &dummy), BUDGET)
+            zheng::execution::private::prepare_execution(&program, &[0; INPUTS], &secret_stream(&Secret([0; 4]), &dummy), BUDGET)
                 .map_err(Error::Proof)?;
         let vk = VerifyingKey::for_execution(&st.execution).map_err(Error::Proof)?;
-        let pk = veil::ProvingKey::new(&program, 12).map_err(Error::Proof)?;
+        let pk = veil::ProvingKey::new(&program, INPUTS).map_err(Error::Proof)?;
         Ok(Self { depth, program, encoded, vk, pk, cycles: st.execution.cycles })
     }
 
@@ -471,8 +483,10 @@ pub fn prove(
         nullifier: secret.nullifier(scope),
     };
     statement.check()?;
-    let (st, proof) = veil::prove_with_key(&key.pk, &key.program, &statement.inputs(), &secret_stream(secret, path), BUDGET)
-        .map_err(Error::Proof)?;
+    let mut stream = secret_stream(secret, path);
+    let proved = veil::prove_with_key(&key.pk, &key.program, &statement.inputs(), &stream, BUDGET);
+    wipe(&mut stream);
+    let (st, proof) = proved.map_err(Error::Proof)?;
     if st != key.zheng_statement(&statement) {
         return Err(Error::Proof("execution disagrees with the native statement".into()));
     }
