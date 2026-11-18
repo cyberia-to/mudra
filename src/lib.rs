@@ -35,6 +35,8 @@
 //! secp256k1-native regardless of what the rest of cyber's identity model
 //! becomes.
 
+#[cfg(feature = "authorship")]
+pub mod authorship;
 pub mod claim;
 pub use neuron_id::NeuronId;
 pub mod cosmos;
