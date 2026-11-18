@@ -1,16 +1,21 @@
 //! P1 private authorship (`specs/authorship.md`): prove / verify / size per
-//! authority-set depth on the backend `ZHENG_BACKEND` names (cpu, metal,
-//! webgpu; default cpu).
+//! authority-set depth, on the prover's default (CPU) backend.
 //!
 //! ```text
-//! ZHENG_BACKEND=metal cargo run --release --features authorship --example p1_bench -- 12 16 20
+//! cargo run --release --features authorship --example p1_bench -- 12 16 20
 //! ```
 //!
-//! `key ms` = program + relation compile + verifying key, once per depth;
-//! `prove ms` = zheng veil prove (it compiles the relation again: veil has
-//! no held proving key); `verify ms` = with the held verifying key; `set
-//! ms` = the native tree over 2^min(d, 16) members. `P1_REPS` (default 3),
-//! medians.
+//! A device backend is installed by the stand, not by this crate: mudra
+//! carries no dependency on lens's `gpu` crate, because a dev-dependency
+//! is not feature-gated and would make every default build need a lens
+//! checkout. To time Metal, add `cyber-lens-gpu` as a dev-dependency on a
+//! stand that has lens and call `cyber_lens_gpu::install` before the loop
+//! (how the Metal column of `audit/p1-authorship-2026-10.md` was taken).
+//!
+//! `key ms` = program + relation compile + proving and verifying keys,
+//! once per depth; `prove ms` = zheng `veil::prove_with_key` with that
+//! held key; `verify ms` = with the held verifying key; `set ms` = the
+//! native tree over 2^min(d, 16) members. `P1_REPS` (default 3), medians.
 
 use std::time::Instant;
 
@@ -22,15 +27,10 @@ fn median(mut v: Vec<f64>) -> f64 {
 }
 
 fn main() {
-    let backend = std::env::var("ZHENG_BACKEND").unwrap_or_else(|_| "cpu".into());
-    let (name, device) = backend
-        .parse::<cyber_lens_gpu::Choice>()
-        .and_then(cyber_lens_gpu::install)
-        .unwrap_or_else(|e| panic!("ZHENG_BACKEND: {e}"));
     let reps: usize = std::env::var("P1_REPS").ok().and_then(|s| s.parse().ok()).unwrap_or(3);
     let depths: Vec<usize> = std::env::args().skip(1).filter_map(|a| a.parse().ok()).collect();
     let depths = if depths.is_empty() { vec![12, 16, 20] } else { depths };
-    println!("backend: {name} ({device}), reps {reps}");
+    println!("backend: the prover's default, reps {reps}");
     println!("| depth | members | set ms | key ms | cycles | prove ms | verify ms | proof bytes |");
     println!("|---|---|---|---|---|---|---|---|");
     for depth in depths {

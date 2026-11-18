@@ -3,26 +3,10 @@
 version = 4
 
 [[package]]
-name = "acpu"
-version = "0.2.0"
-dependencies = [
- "unimem",
-]
-
-[[package]]
 name = "arrayvec"
 version = "0.7.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f02882884d3e1bc524fb12c79f107f6ad0e1cfd498c536ffb494301740995dfe"
-
-[[package]]
-name = "aruminium"
-version = "0.2.0"
-dependencies = [
- "acpu",
- "mutants",
- "unimem",
-]
 
 [[package]]
 name = "autocfg"
@@ -145,21 +129,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "crossbeam-queue"
-version = "0.3.14"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "03e8bd762f7479489c70ed6c768ddca99d7296857de437a68dcb2a94365b3fae"
-dependencies = [
- "crossbeam-utils",
-]
-
-[[package]]
-name = "crossbeam-utils"
-version = "0.8.23"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a31eee39dddec8330830986fcd7625edb5a24ec90ea038215273bbc3adb08ac6"
-
-[[package]]
 name = "crypto-bigint"
 version = "0.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -237,16 +206,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cyber-lens-gpu"
-version = "0.1.0"
-dependencies = [
- "aruminium",
- "cyber-hemera",
- "cyber-lens-rspcs",
- "strata-nebu",
-]
-
-[[package]]
 name = "cyber-lens-ikat"
 version = "0.2.0"
 dependencies = [
@@ -283,7 +242,6 @@ dependencies = [
  "bip32",
  "bip39",
  "cyber-hemera",
- "cyber-lens-gpu",
  "cyber-nox",
  "hex",
  "k256",
@@ -475,12 +433,6 @@ name = "memchr"
 version = "2.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
-
-[[package]]
-name = "mutants"
-version = "0.0.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bc0287524726960e07b119cebd01678f852f147742ae0d925e6a520dca956126"
 
 [[package]]
 name = "neuron-id"
@@ -852,14 +804,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5fd4f6878c9cb28d874b009da9e8d183b5abc80117c40bbd187a1fde336be6e8"
 dependencies = [
  "tinyvec",
-]
-
-[[package]]
-name = "unimem"
-version = "0.2.0"
-dependencies = [
- "crossbeam-queue",
- "mutants",
 ]
 
 [[package]]

@@ -103,8 +103,11 @@ path = "examples/migrate.rs"
 required-features = ["bridge"]
 
 [dev-dependencies]
-# examples/p1_bench picks the prover backend (ZHENG_BACKEND)
-cyber-lens-gpu = { version = "0.1.0", path = "../lens/gpu", features = ["metal"] }
+# no device-backend crate here: a dev-dependency is not feature-gated, so a
+# path dependency on lens's `gpu` would make every default `cargo check`
+# need a lens checkout. examples/p1_bench runs on the prover's default
+# (CPU) backend; the Metal figures of audit/p1-authorship-2026-10.md were
+# taken on a stand that installs lens's Metal backend (see the bench's doc).
 serde_json = "1"
 hex = "0.4"
 # independent references for the phase-2 gadget tests only
