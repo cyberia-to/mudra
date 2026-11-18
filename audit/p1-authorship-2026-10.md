@@ -6,10 +6,11 @@ date: 2026-10-14
 
 Statement: [specs/authorship.md](../specs/authorship.md). Code:
 `src/authorship.rs` (feature `authorship`), tests
-`src/authorship_tests.rs`, bench `examples/p1_bench.rs`. This closes
-the second blocker named in `audit/p1-signal-content-commitment-gap.md`
-(mudra PR #3, "zheng's private execution / blinding protocol"). zheng's
-veil profile (envelope profile 2) now exists and proves the P1 relation.
+`src/authorship_tests.rs`, bench `examples/p1_bench.rs`. This closes the
+second blocker named by the P1 gap audit of mudra PR #3 (unmerged, so that
+page is not in this tree): "zheng's private execution / blinding
+protocol". zheng's veil profile (envelope profile 2) now exists and proves
+the P1 relation.
 The first blocker is open: no cybergraph/foculus clause yet binds the
 statement into the signal. specs/authorship.md § "what the enclosing
 protocol defines" lists the four pieces.
@@ -20,6 +21,14 @@ aa54bdd, lens `release/0.2`, nox `release/0.4`, hemera / strata `main`,
 honeycrisp `main` 9cbd480. Apple M4 Max, rustc 1.95.0, `--release`.
 **Load average 40–75 from other agents during the bench, and up to 130
 during the tests.**
+
+That stand predates the held proving key. zheng aa54bdd is zheng#64; the
+`veil::ProvingKey` this branch now proves with arrived in zheng#66
+(`feat/fast-path-2`, merged into `release/0.4`:
+`zheng/rs/src/execution/veil/key.rs`). The tests and the first
+measurement table below are from the first prover, which recompiled the
+relation on every proof; the held-key figures are the ones measured on
+zheng#66 and recorded in zheng `audit/fast-path-2-2026-10.md` §2.
 
 ## tests
 
@@ -58,12 +67,15 @@ spec):
 
 ## measurements
 
+### the first prover (relation recompiled per proof, zheng aa54bdd)
+
 `ZHENG_BACKEND={metal,cpu} cargo run --release --features authorship
---example p1_bench -- 12 16 20 24 32` (`P1_REPS=3`, medians). The tree is
-built over at most 2^16 members (`set ms`, native, the set holder's
-cost). `key ms` = program + relation compile + verifying key, once per
-depth. Prove includes veil's own relation compile, since veil has no held
-proving key.
+--example p1_bench -- 12 16 20 24 32` (`P1_REPS=3`, medians; the bench
+took its backend from a `cyber-lens-gpu` dev-dependency, which the branch
+has since dropped — see `examples/p1_bench.rs`). The tree is built over at
+most 2^16 members (`set ms`, native, the set holder's cost). `key ms` =
+program + relation compile + verifying key, once per depth. Prove includes
+veil's own relation compile, since veil had no held proving key then.
 
 | d | members in tree | set ms | key ms | cycles | prove Metal | prove CPU | verify (held vk) | proof bytes |
 |---|---|---|---|---|---|---|---|---|
@@ -73,25 +85,50 @@ proving key.
 | 24 | 65,536 | 7,312 | 439 | 1,416 | 1,315 ms | 1,375 ms | 74–75 ms | 418,757 |
 | 32 | 65,536 | 7,099 | 549 | 1,848 | 1,342 ms | 1,414 ms | 85 ms | 419,365 |
 
+### the committed prover (held key, zheng#66)
+
+Measured by zheng's fast-path-2 agent on this branch's head a6dd4ba plus
+exactly the held-key change this branch now carries as 9483c6e (`Key`
+holds `veil::ProvingKey::new(&program, INPUTS)`, `prove` calls
+`veil::prove_with_key`); `P1_REPS=5`, load 27–28, same machine. Recorded in
+zheng `audit/fast-path-2-2026-10.md` §2 and in soft3
+`audit/proof-latency-2026-10.md`:
+
+| d | prove, zheng#66 without a held key | prove, held key (Metal / CPU) |
+|---|---|---|
+| 12 | — | — |
+| 16 | — | — |
+| 20 | 488 ms Metal | **255** / 306 ms |
+| 24 | — | — |
+| 32 | 748 ms Metal | **396** / 477 ms |
+
+A dash is a depth nobody has timed on zheng#66; the first prover's figures
+for d = 12, 16 and 24 do not transfer to this one. Proof bytes and verify
+time do not depend on the prover's key — 293 KB at d = 20 and 419 KB at
+d = 32 came out of this run too — so the first table's columns for them
+still stand.
+
 Reading:
-- **≤ 1 s up to d = 20** (1,048,576 authorities) on Metal, and at the
-  edge on CPU, under load. The spec's default depth is 20.
-- Metal buys little (≤ 15%). The latency audit (soft3
-  `audit/proof-latency-2026-10.md`) found the same: the veil prover's
-  hiding commitment (sequential constant-time XOF coins, single-threaded
-  leaf hashing) is not device-accelerated.
+- The device gate is no longer what bounds the depth: d = 32 is 396 ms,
+  well inside ≤ 1 s, and so is every depth below it on the same prover.
+  Half the gain is the held key and half is zheng#66's counter-mode coins
+  (965 → 488 ms at d = 20 before the key, 488 → 255 ms with it).
+- The spec's default depth is 20 because the proof size steps there, not
+  because of latency: 292–294 KB up to d = 20 against 419 KB from d = 24.
+- Metal bought little on the first prover (≤ 15%); with counter-mode coins
+  and a held key it is ~20% ahead of CPU (255 vs 306 ms at d = 20).
 - Proofs are 292–294 KB (d ≤ 20) and 419 KB (d ≥ 24), far over the
-  64 KB profile-1 goal. Size and prove time step together between 20
-  and 24 (the committed size class doubles), not per level.
+  64 KB profile-1 goal, and the held key does not move them.
 - The native set build is ~110 µs per member (each node hashes two
   digest nouns structurally: 15 hemera calls plus one permutation). It
   is set-holder work, once per root.
 
 ## wanted from zheng (not changed here; another branch owns veil internals)
 
-- a held proving key for veil (`veil::ProvingKey`, like
-  `succinct::ProvingKey`): every proof recompiles the relation today
-  (`key ms` above is the cost);
+The held proving key asked for in the first draft of this page exists and
+is what the branch proves with (zheng#66, `veil::ProvingKey` /
+`veil::prove_with_key`). What is still wanted:
+
 - veil proof size: 292–419 KB is the wire cost of every private signal;
 - a seeded-coins entry or public parser, so downstream zk tests can run
   zheng's per-component χ² rather than a word-level one.

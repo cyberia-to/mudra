@@ -2,18 +2,32 @@
 tags: mudra, privacy, zheng, identity
 crystal-type: entity
 crystal-domain: crypto
-alias: P1 private authorship, signal authorship proof, edge public author private
+alias: P1 private authorship, signal authorship proof, cyberlink public author private
 ---
-# authorship — P1: the edge is public, the author is private
+# authorship — P1: the cyberlink is public, the author is private
+
+**Standing (2026-10-16).** This page states a second, standalone relation.
+`soft3/proposals/privacy-frozen.md` decides against all three of its
+distinguishing choices: §1.6 makes speaking a spend and folds P1 into the
+pool's one relation, §8.4 orders this page retargeted onto `SPEND` (the
+authority set becomes the record tree, the scoped nullifier becomes the
+spend nullifier, the content commitment becomes the link output — "one
+relation, not two"), and §1.3 freezes every consensus-critical digest at
+full width, at least 48 bytes, where the digests below are four limbs.
+That retarget is owed before anything here is used: it needs `SPEND`'s
+public-input encoding (`soft3/proposals/privacy-frozen.md` §8.1, into
+`soft3/specs/chain.md`) and bbg's record tree, neither of which exists
+yet. Until the owner either records that retarget or records that mudra
+keeps a separate P1 relation outside the pool, this page is the statement
+as built and measured, not a statement any signal carries.
 
 P1 (`cyber/launch.md` core 6, corrected 2026-09-22): the network sees
 that particle p links particle q and the axon weight. It does not see which
-neuron signed. The gap is recorded in
-`audit/p1-signal-content-commitment-gap.md` (mudra PR #3): the signal
-names its author (`ν`, `neuron[32]` per link), and nothing bound
-[identity](identity.md)'s private authority profile to a signal. This page
-is that binding's statement. Implementation: `src/authorship.rs`,
-feature `authorship`.
+neuron signed. The gap is recorded in mudra PR #3 (unmerged, so its audit
+page is not in this tree): the signal names its author (`ν`, `neuron[32]`
+per link), and nothing bound [identity](identity.md)'s private authority
+profile to a signal. This page is that binding's statement.
+Implementation: `src/authorship.rs`, feature `authorship`.
 
 ## objects
 
@@ -44,9 +58,12 @@ Domain atoms: `D_AUTH = 0x5031_4155_5448` ("P1AUTH"),
 
 A digest enters a noun as `[[d0 d1] [d2 d3]]`.
 
-Depth: `1 ≤ d ≤ 32`. Default **d = 20** (1,048,576 authorities). That is the
-largest depth measured within the ≤ 1 s device gate
-(`audit/p1-authorship-2026-10.md`). Depths 24 and 32 cost about 1.4 s.
+Depth: `1 ≤ d ≤ 32`. Default **d = 20** (1,048,576 authorities). Latency
+does not choose it: with the held proving key the committed prover is
+255 ms at d = 20 and 396 ms at d = 32 on Metal, both inside the ≤ 1 s
+device gate. The default is the largest depth in the smaller proof class —
+292–294 KB up to d = 20 against 419 KB from d = 24, where the committed
+size doubles (`audit/p1-authorship-2026-10.md`).
 
 ## statement
 
@@ -128,7 +145,8 @@ accepts it.
 
 The prover refuses before proving when the secret and path do not open
 to `R`, when a direction is not 0/1, or when a limb is non-canonical.
-Proving randomness comes from the OS (`veil::prove`).
+Proving randomness comes from the OS (`veil::prove_with_key`, which draws
+fresh coins per proof from a key that holds the compiled relation).
 
 ## leakage contract
 
@@ -152,9 +170,9 @@ the proof bytes, check that the statement carries public values only,
 and check two-position indistinguishability (Welch t and χ²).
 
 Not covered: the prover is not constant time (zheng states it). Timing
-on a shared machine is a side channel outside this contract. Edges and
-axon weights are public under P1. Who holds a position and who owns the
-energy (amount, ICBS position) are P2 (`stealth.md`, `veil.md`), not
+on a shared machine is a side channel outside this contract. Cyberlinks
+and their axon weights are public under P1. Who holds a position and who
+owns the energy (amount, ICBS position) are P2 (`stealth.md`, `veil.md`), not
 this statement.
 
 ## what the enclosing protocol defines
@@ -177,13 +195,18 @@ the following before a signal carries it:
 
 ## parameters
 
-| d | members | prove (Metal / CPU) | verify | proof |
+| d | members | prove, held key (Metal / CPU) | verify | proof |
 |---|---|---|---|---|
-| 12 | 4,096 | 0.81 / 0.94 s | 49 ms | 292 KB |
-| 16 | 65,536 | 0.96 / 0.99 s | 52 ms | 293 KB |
-| 20 | 1,048,576 | 0.97 / 1.00 s | 56 ms | 292 KB |
-| 24 | 16.7 M | 1.32 / 1.38 s | 74 ms | 419 KB |
-| 32 | 4.3 G | 1.34 / 1.41 s | 85 ms | 419 KB |
+| 12 | 4,096 | — | 49 ms | 292 KB |
+| 16 | 65,536 | — | 52 ms | 293 KB |
+| 20 | 1,048,576 | 255 / 306 ms | 56 ms | 292 KB |
+| 24 | 16.7 M | — | 74 ms | 419 KB |
+| 32 | 4.3 G | 396 / 477 ms | 85 ms | 419 KB |
 
-These were measured on 2026-10-14 under load average 40–75 from other
-processes; see `audit/p1-authorship-2026-10.md`.
+A dash is a depth nobody has timed with the held proving key the code now
+uses; d = 20 and d = 32 were timed on it (zheng
+`audit/fast-path-2-2026-10.md` §2). The first prover, which recompiled the
+relation on every proof, took 0.81–1.41 s across these depths; verify and
+proof bytes are the same prover-independent figures as then. Both runs are
+on an Apple M4 Max under load from other processes; see
+`audit/p1-authorship-2026-10.md`.
