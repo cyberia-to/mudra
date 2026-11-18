@@ -27,7 +27,8 @@ neuron signed. The gap is recorded in mudra PR #3 (unmerged, so its audit
 page is not in this tree): the signal names its author (`ν`, `neuron[32]`
 per link), and nothing bound [identity](identity.md)'s private authority
 profile to a signal. This page is that binding's statement.
-Implementation: `src/authorship.rs`, feature `authorship`.
+Implementation: `src/authorship.rs` (the program builder in
+`src/authorship_program.rs`), feature `authorship`.
 
 ## objects
 
@@ -61,9 +62,11 @@ A digest enters a noun as `[[d0 d1] [d2 d3]]`.
 Depth: `1 ≤ d ≤ 32`. Default **d = 20** (1,048,576 authorities). Latency
 does not choose it: with the held proving key the committed prover is
 255 ms at d = 20 and 396 ms at d = 32 on Metal, both inside the ≤ 1 s
-device gate. The default is the largest depth in the smaller proof class —
-292–294 KB up to d = 20 against 419 KB from d = 24, where the committed
-size doubles (`audit/p1-authorship-2026-10.md`).
+device gate. The default is the largest *measured* depth in the smaller
+proof class — 292–294 KB up to d = 20 (292,341 bytes at d = 20) against
+419 KB from d = 24 (418,757 bytes), a step of 1.43x. No depth between
+21 and 23 has been measured, so where inside that gap the step falls is
+not known (`audit/p1-authorship-2026-10.md`).
 
 ## statement
 

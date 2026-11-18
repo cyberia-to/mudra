@@ -5,7 +5,8 @@ date: 2026-10-14
 # P1 private authorship — implementation evidence, 2026-10-14
 
 Statement: [specs/authorship.md](../specs/authorship.md). Code:
-`src/authorship.rs` (feature `authorship`), tests
+`src/authorship.rs` with the program builder in
+`src/authorship_program.rs` (feature `authorship`), tests
 `src/authorship_tests.rs`, bench `examples/p1_bench.rs`. This closes the
 second blocker named by the P1 gap audit of mudra PR #3 (unmerged, so that
 page is not in this tree): "zheng's private execution / blinding
@@ -35,6 +36,21 @@ zheng#66 and recorded in zheng `audit/fast-path-2-2026-10.md` §2.
 `cargo test --release --features authorship`: 30 passed (19 existing +
 11 new); `cargo test --release`: 19 passed. Clippy: no warnings in the
 new files.
+
+**That run is from the first prover (zheng aa54bdd = zheng#64), not from
+the committed one.** Three of the tests below read the prover's coins —
+`proofs_are_randomized`,
+`proofs_from_two_positions_of_one_statement_are_indistinguishable` and
+`no_secret_commitment_or_path_limb_appears_in_the_proof` — and zheng#66
+moved coin derivation to counter mode, which is where those coins come
+from. The committed prover (`veil::ProvingKey` / `veil::prove_with_key`)
+has no recorded suite run: the zheng#66 stand exercised prove and verify
+through `examples/p1_bench` at d = 20 and 32 only. The numbers in the
+table below (the Welch t, the two-sample χ², the window scan) are
+therefore the first prover's. Re-running
+`cargo test --release --features authorship` on a zheng#66 stand and
+recording it here beside this run is owed before the leakage contract is
+read as measured on the committed code.
 
 | test | what it establishes |
 |---|---|
@@ -113,8 +129,10 @@ Reading:
   well inside ≤ 1 s, and so is every depth below it on the same prover.
   Half the gain is the held key and half is zheng#66's counter-mode coins
   (965 → 488 ms at d = 20 before the key, 488 → 255 ms with it).
-- The spec's default depth is 20 because the proof size steps there, not
-  because of latency: 292–294 KB up to d = 20 against 419 KB from d = 24.
+- The spec's default depth is 20 because the proof size steps between the
+  measured depths 20 and 24, not because of latency: 292,341 bytes at
+  d = 20 against 418,757 at d = 24, a step of 1.43x. d = 21, 22 and 23
+  are not measured, so the exact depth of the step is not known.
 - Metal bought little on the first prover (≤ 15%); with counter-mode coins
   and a held key it is ~20% ahead of CPU (255 vs 306 ms at d = 20).
 - Proofs are 292–294 KB (d ≤ 20) and 419 KB (d ≥ 24), far over the
