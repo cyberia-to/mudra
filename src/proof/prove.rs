@@ -14,7 +14,8 @@
 //! 2. run [`nox::reduce`] natively to get the result,
 //! 3. [`certify_execution`]: zheng public profile v3 — statement (program,
 //!    inputs, outputs, cost, budget) plus the free witness positions,
-//! 4. [`verify_certificate`]: the verifier recompiles the relation from the
+//! 4. check the statement's disclosed output against that native result,
+//! 5. [`verify_certificate`]: the verifier recompiles the relation from the
 //!    program and checks every row exactly.
 //!
 //! Profile v3 discloses the witness and is linear in size; it is a soundness
@@ -56,10 +57,12 @@ fn madd_program(a: u64, b: u64, c: u64) -> ExecutionNoun {
     pair(atom(ADD), pair(mul, quote(c)))
 }
 
-/// Run `a·b + c` on nox natively, returning its execution trace and result —
-/// two arithmetic patterns (`mul`, `add`) plus the quoting/compose steps
-/// around them, the atoms every field-limb operation is built from.
-fn run_madd(a: u64, b: u64, c: u64) -> (VecTrace, u64) {
+/// Run `a·b + c` on nox natively, returning its result — two arithmetic
+/// patterns (`mul`, `add`) plus the quoting/compose steps around them, the
+/// atoms every field-limb operation is built from. The `VecTrace` the
+/// reduction fills stays local: profile v3 certifies the program, not this
+/// trace.
+fn run_madd(a: u64, b: u64, c: u64) -> u64 {
     let mut r = Reduction::<4096>::new();
     let subject = r.atom(Goldilocks::new(0)).expect("subject");
 
@@ -84,21 +87,63 @@ fn run_madd(a: u64, b: u64, c: u64) -> (VecTrace, u64) {
     let formula = r.pair(add_tag, add_body).unwrap();
 
     let mut trace = VecTrace::default();
-    let result = match reduce(&mut r, subject, formula, BUDGET, &NullCalls, &mut trace) {
+    match reduce(&mut r, subject, formula, BUDGET, &NullCalls, &mut trace) {
         Outcome::Ok(res, _) => r.atom_value(res).expect("atom result").as_u64(),
         other => panic!("nox reduce failed: {other:?}"),
-    };
-    (trace, result)
+    }
 }
 
+/// Why [`prove_madd`] yielded no certificate.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ProveError {
+    /// zheng declined to certify the program — e.g. its cost exceeds the budget.
+    Certify,
+    /// The certified statement's output disagrees with the native reduction:
+    /// the two encodings of `a·b + c` have drifted apart.
+    OutputMismatch {
+        /// What `nox::reduce` computed natively.
+        native: u64,
+        /// What the statement discloses as the program's output.
+        certified: Vec<u64>,
+    },
+}
+
+impl core::fmt::Display for ProveError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            ProveError::Certify => write!(f, "zheng declined to certify the program"),
+            ProveError::OutputMismatch { native, certified } => write!(
+                f,
+                "certified output {certified:?} disagrees with the native result {native}"
+            ),
+        }
+    }
+}
+
+impl std::error::Error for ProveError {}
+
 /// Certify `a·b + c` end to end: run it on nox, certify the same program with
-/// zheng public profile v3. Returns the statement, its certificate and the
-/// natively computed value (the statement's output must equal it).
-pub fn prove_madd(a: u64, b: u64, c: u64) -> (ExecutionStatement, Certificate, u64) {
-    let (_, result) = run_madd(a, b, c);
+/// zheng public profile v3, and check the statement's disclosed output against
+/// the native result. The two encodings are built independently — the
+/// [`Reduction`] in `run_madd` and the [`ExecutionNoun`] in `madd_program` —
+/// so that equality is the differential check against native, not an
+/// assumption; any drift between them is an error, never a returned value.
+/// Returns the statement, its certificate and the natively computed value.
+pub fn prove_madd(
+    a: u64,
+    b: u64,
+    c: u64,
+) -> Result<(ExecutionStatement, Certificate, u64), ProveError> {
+    let result = run_madd(a, b, c);
     let (statement, certificate) =
-        certify_execution(&madd_program(a, b, c), &[], BUDGET).expect("zheng certificate v3");
-    (statement, certificate, result)
+        certify_execution(&madd_program(a, b, c), &[], BUDGET).map_err(|_| ProveError::Certify)?;
+    if statement.public_output != [result] {
+        return Err(ProveError::OutputMismatch {
+            native: result,
+            certified: statement.public_output,
+        });
+    }
+    Ok((statement, certificate, result))
 }
 
 /// Verify a certificate against its statement.
@@ -112,21 +157,26 @@ mod tests {
 
     #[test]
     fn madd_proof_verifies_end_to_end() {
-        let (stmt, cert, result) = prove_madd(3, 5, 7);
+        let (stmt, cert, result) = prove_madd(3, 5, 7).expect("certificate");
         assert_eq!(result, 22, "3·5 + 7 computed correctly by nox");
         assert_eq!(stmt.public_output, vec![22], "the statement carries the result");
         assert!(verify_proof(&stmt, &cert), "the zheng certificate verifies");
     }
 
     #[test]
-    fn trace_has_multiple_pattern_rows() {
-        let (trace, _) = run_madd(6, 7, 1);
-        assert!(trace.0.len() >= 2, "trace spans several reduction steps");
+    fn certified_output_equals_the_native_result() {
+        // The public API returns a certificate only when the statement's
+        // disclosed output matches what nox computed natively — checked over
+        // the limb range the gadget actually uses, not one input.
+        for (a, b, c) in [(0, 0, 0), (1, 1, 0), (3, 5, 7), (65535, 65535, 65535)] {
+            let (stmt, _, result) = prove_madd(a, b, c).expect("certificate");
+            assert_eq!(stmt.public_output, vec![result], "{a}·{b} + {c}");
+        }
     }
 
     #[test]
     fn wrong_output_is_rejected() {
-        let (mut stmt, cert, _) = prove_madd(3, 5, 7);
+        let (mut stmt, cert, _) = prove_madd(3, 5, 7).expect("certificate");
         stmt.public_output[0] = 23;
         assert!(!verify_proof(&stmt, &cert), "a false result does not verify");
     }
@@ -135,8 +185,8 @@ mod tests {
     fn budget_binds_the_step_count() {
         // A statement that claims a budget below the cost is rejected — the
         // certificate cannot understate the work done.
-        let (stmt, cert, _) = prove_madd(3, 5, 7);
-        assert!(stmt.cycles > 1);
+        let (stmt, cert, _) = prove_madd(3, 5, 7).expect("certificate");
+        assert!(stmt.cycles > 1, "the program spans several reduction steps");
         let mut tight = stmt.clone();
         tight.budget = stmt.cycles - 1;
         assert!(!verify_proof(&tight, &cert), "understated budget rejected");

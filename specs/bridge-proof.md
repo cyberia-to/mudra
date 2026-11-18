@@ -21,8 +21,11 @@ The Phase-1 Rust is the reference; the Phase-2 gadget must match it bit-for-bit.
 nox reduces over **Goldilocks** `p = 2^64 − 2^32 + 1` only. Its patterns:
 `add`/`sub`/`mul`/`inv` (field, tags 5–8), `xor`/`and`/`not`/`shl` (32-bit words,
 tags 11–14), `eq`/`lt`, `hash` (Poseidon2). A run emits a `VecTrace` (rows of 16
-Goldilocks columns); `zheng::commit(trace, …)` folds the rows by pattern and
-produces the proof. secp256k1 lives in a **different, 256-bit field**
+Goldilocks columns), which the reduction keeps to itself;
+`zheng::execution::certify_execution(program, inputs, budget)` certifies the
+*program* — a statement (program, inputs, outputs, cost, budget) plus the
+disclosed witness — and `verify_certificate` recompiles the relation from that
+statement and checks every row. secp256k1 lives in a **different, 256-bit field**
 `q = 2^256 − 2^32 − 977`, so it must be *emulated* as limbs of Goldilocks. rune
 and nox can't express it directly — Phase 2 is a Rust gadget over `nebu::Goldilocks`
 whose every operation is one nox pattern.
@@ -54,7 +57,7 @@ subtract of `q`. Every step is limb multiply/add — Goldilocks-native.
 | 2b | secp256k1 curve: point add/double, scalar mul, decompress (Jacobian) | EC group law over the limb field | **DONE** |
 | 2c | ECDSA verify equation: `R.x == r` from `(r,s,z,Q)` | the signature check itself | **DONE** |
 | 2d | sha256 + ripemd160 as bit-op circuits (nox `and`/`xor`/`not`/`shl`) | address derivation + ADR-036 digest | **DONE** |
-| 2e | nox program → `VecTrace` → `zheng::commit` → verify (pipeline) | a real, checkable zheng proof | **pipeline DONE; full-claim assembly remains** |
+| 2e | nox program → `certify_execution` → `verify_certificate` (pipeline) | an execution checked against its statement (public profile v3: witness disclosed, linear, not zk) | **pipeline DONE; full-claim assembly remains** |
 
 2a–2d express the full claim check (ECDSA + both hashes) in Goldilocks-limb /
 word arithmetic — the reference gadget, every operation a nox pattern *by
@@ -63,7 +66,8 @@ real Phase-1 claim (in-stack verify agrees with native on 40+ random signatures)
 
 2e closes the proving *mechanism*: `proof::prove` (feature `prove`) builds a nox
 program, runs `nox::reduce` natively, certifies the same program with zheng
-public profile v3 (`certify_execution`) and checks it with
+public profile v3 (`certify_execution`), checks the statement's disclosed
+output against that native result, and checks the certificate with
 `verify_certificate` — demonstrated on the Goldilocks `a·b + c` that every limb
 decomposes into, with soundness checks (a false output, an understated budget
 or cost rejected). Profile v3 discloses the witness and is linear in size; the
